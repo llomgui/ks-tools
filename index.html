@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KS Tools – free Kingshot calculators and planners</title>
+<meta name="description" content="Free Kingshot tools: hero gear and governor gear upgrade planners that show the best upgrade order and which shop packs are worth buying.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="KS Tools – free Kingshot calculators and planners">
+<meta property="og:description" content="Free Kingshot tools: hero gear and governor gear upgrade planners that show the best upgrade order and which shop packs are worth buying.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23b8430f'/%3E%3Cpath d='M9 22l9-12 2 2-9 12zM18 8l6 6' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+.hero-home{padding-block:12px 8px;max-width:62ch}
+.hero-home h1{font-family:var(--display);font-size:clamp(1.8rem,4.5vw,2.8rem);margin:0 0 8px;text-wrap:balance}
+.hero-home p{color:var(--muted);margin:0;font-size:1rem}
+.tools{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:24px}
+.tool{display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;color:var(--ink);text-decoration:none}
+.tool:hover{border-color:var(--ember)}
+.tool:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+.tool h2{font-family:var(--display);font-size:1.1rem;letter-spacing:.04em;margin:0}
+.tool p{margin:0;color:var(--muted);font-size:.9rem}
+.tool ul{margin:4px 0 0;padding-left:1.1em;font-size:.86rem;display:flex;flex-direction:column;gap:2px}
+.tool .go{margin-top:auto;padding-top:8px;color:var(--ember);font-weight:600}
+.tool.soon{border-style:dashed;background:transparent}
+.tool.soon .go{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="sitenav" aria-label="Site">
+    <a class="brand" href="./">KS <span>Tools</span></a>
+    <div class="apptabs"><a href="./hero-gear/">Hero Gear</a><a href="./governor-gear/">Governor Gear</a></div>
+  </nav>
+  <header class="hero-home">
+    <h1>Kingshot tools</h1>
+    <p>Free planners that tell you what to upgrade next, and which packs are actually worth buying for your account.</p>
+  </header>
+  <section class="tools" aria-label="Tools">
+    <a class="tool" href="hero-gear/">
+      <h2>Hero Gear Planner</h2>
+      <p>The best upgrade order for your 12 hero gear pieces.</p>
+      <ul><li>Forgehammers, Mithril, Mythic Gear and XP</li><li>Attack, defense and mixed formations</li><li>KvK and event points, shop pack value</li></ul>
+      <span class="go">Open the planner →</span>
+    </a>
+    <a class="tool" href="governor-gear/">
+      <h2>Governor Gear Planner</h2>
+      <p>Where your Satin, Threads and Vision do the most.</p>
+      <ul><li>Set bonuses and troop capacity</li><li>Best Master's Collection chest picks</li><li>Tool and Enhancement pack value</li></ul>
+      <span class="go">Open the planner →</span>
+    </a>
+    <div class="tool soon">
+      <h2>More tools</h2>
+      <p>New calculators are on the way.</p>
+      <span class="go">Coming soon</span>
+    </div>
+  </section>
+  <footer class="sitefoot"><span>KS Tools · free calculators for Kingshot players</span><span>Independent fan project, not affiliated with Kingshot or Century Games.</span></footer>
+</div>
+
+</body>
+</html>

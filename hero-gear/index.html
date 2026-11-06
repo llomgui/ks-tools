@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kingshot Hero Gear Planner – best upgrade order | KS Tools</title>
+<meta name="description" content="Free Kingshot hero gear calculator: enter your Forgehammers, Mithril, Mythic Gear and XP and get the best upgrade order, formation comparison, event points and which shop packs are worth buying.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Kingshot Hero Gear Planner – best upgrade order | KS Tools">
+<meta property="og:description" content="Free Kingshot hero gear calculator: enter your Forgehammers, Mithril, Mythic Gear and XP and get the best upgrade order, formation comparison, event points and which shop packs are worth buying.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23b8430f'/%3E%3Cpath d='M9 22l9-12 2 2-9 12zM18 8l6 6' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <nav class="sitenav" aria-label="Site">
+    <a class="brand" href="../">KS <span>Tools</span></a>
+    <div class="apptabs"><a href="../hero-gear/" aria-current="page">Hero Gear</a><a href="../governor-gear/">Governor Gear</a></div>
+  </nav>
+  <div id="app-hero">
+  <header>
+    <div>
+      <h1>Hero Gear Upgrade Planner</h1>
+      <p class="lede">Enter your resources and your 12 hero gear pieces. The planner ranks every possible upgrade by weighted stat gain per share of budget, the same greedy method as Kingshot Optimizer, and gives you an order to follow.</p>
+    </div>
+  </header>
+
+  <section class="panel start" aria-labelledby="h-start">
+    <div class="start-head">
+      <h2 id="h-start">Start here</h2>
+      <span class="acct" id="acct" role="status"></span>
+    </div>
+    <ol class="howto">
+      <li><b>Load your account.</b> No code? Just type your numbers into the panels below. If you have a KGO code from Kingshot Optimizer, paste it here and press Import. To see how the planner works first, press Load example.</li>
+      <li><b>Check your resources and 12 gear pieces</b> in the panels below. Tap any piece in the results to jump to it.</li>
+      <li><b>Pick your formation,</b> then follow the upgrade order on the right.</li>
+    </ol>
+    <label class="field"><span class="label">KGO build code · updates as you edit</span>
+      <textarea id="code" spellcheck="false" placeholder="Paste a KGO: code here, then press Import code"></textarea>
+    </label>
+    <div class="btns" style="margin-top:10px">
+      <button id="btn-import" type="button" class="primary">Import code</button>
+      <button id="btn-export" type="button">Copy my code</button>
+      <button id="btn-blank" type="button">Start from blank</button>
+      <button id="btn-reset" type="button">Load example</button>
+    </div>
+    <p id="share-msg" class="msg" role="status"></p>
+  </section>
+
+  <div class="grid">
+    <div class="col">
+      <section class="panel" aria-labelledby="h-res">
+        <h2 id="h-res"><span class="stepn">1</span>Your resources</h2>
+        <div class="res">
+          <label class="field"><span class="label">Forgehammers</span><input id="r-fh" type="number" min="0" step="1"></label>
+          <label class="field"><span class="label">Mythic Gear</span><input id="r-myth" type="number" min="0" step="1"></label>
+          <label class="field"><span class="label">Mithril</span><input id="r-mith" type="number" min="0" step="1"></label>
+          <label class="field"><span class="label">Enhancement XP</span><input id="r-xp" type="number" min="0" step="10"></label>
+          <label class="field"><span class="label">Lucky Hero Gear Chests</span><input id="r-ch" type="number" min="0" step="1"><span class="hint" id="ch-hint"></span></label>
+        </div>
+        <div class="opts">
+          <label class="field"><span class="label">Build profile</span>
+            <select id="profile">
+              <option value="growth">Early Game Growth (PvE)</option>
+              <option value="combat">Early Game Combat (PvP 50/20/30)</option>
+              <option value="gen4">Future-proofed (gen 4+)</option>
+              <option value="flat">Unweighted</option>
+            </select>
+          </label>
+          <label class="field"><span class="label">Game mode</span>
+            <select id="mode">
+              <option value="exp">Expedition (troops, rallies)</option>
+              <option value="conq">Conquest (heroes)</option>
+            </select>
+          </label>
+          <label class="check"><input id="ms" type="checkbox">
+            <span>Count milestone bonuses<small>Expedition: troop Attack/Defense at R120, R160, R200. Conquest: Hero Health at R140, Hero Attack/Defense at R180. Turn off to match the site, which uses them only to break ties.</small></span>
+          </label>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-gear">
+        <h2 id="h-gear"><span class="stepn">2</span>Your hero gear</h2>
+        <p class="lede" style="margin:-6px 0 12px;font-size:.88rem">Set quality, level and mastery for each piece. Red level 179 is shown in game as +79.</p>
+        <div class="colhead"><span class="label">Piece</span><span class="label">Quality</span><span class="label">Level</span><span class="label">Mastery</span></div>
+        <div id="gear"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-form">
+        <h2 id="h-form"><span class="stepn">3</span>Formations</h2>
+        <p class="lede" style="margin:-6px 0 12px;font-size:.88rem">Troop shares change what your gear is worth. Each formation scales the build profile's weights (built for 50/20/30) by how many of each troop you field. Pick the plan you want the rest of the page to follow.</p>
+        <div class="forms">
+          <fieldset><legend class="label">Attack rally</legend>
+            <div class="fr"><label class="field"><span class="label">Inf %</span><input id="fa-i" type="number" min="0" max="100"></label>
+            <label class="field"><span class="label">Cav %</span><input id="fa-c" type="number" min="0" max="100"></label>
+            <label class="field"><span class="label">Arch %</span><input id="fa-a" type="number" min="0" max="100"></label></div>
+            <small class="fs" id="fs-att"></small></fieldset>
+          <fieldset><legend class="label">Defense</legend>
+            <div class="fr"><label class="field"><span class="label">Inf %</span><input id="fd-i" type="number" min="0" max="100"></label>
+            <label class="field"><span class="label">Cav %</span><input id="fd-c" type="number" min="0" max="100"></label>
+            <label class="field"><span class="label">Arch %</span><input id="fd-a" type="number" min="0" max="100"></label></div>
+            <small class="fs" id="fs-def"></small></fieldset>
+        </div>
+        <label class="field mixf"><span class="label">Mix: how your fights split</span>
+          <input id="f-mix" type="range" min="0" max="100" step="5"><span class="mixo" id="mix-out"></span></label>
+        <div class="tbl"><table id="form-table">
+          <thead><tr><th>Plan</th><th class="r">Attack</th><th class="r">Defense</th><th class="r">Mix</th></tr></thead>
+          <tbody></tbody></table></div>
+        <p class="foot">Each cell is the plan's gain scored with that formation's weights. The best result in each column is highlighted. Scaling by troop share is an estimate, not a game formula.</p>
+      </section>
+
+
+    </div>
+
+    <div class="col">
+      <section class="panel results" aria-labelledby="h-plan">
+        <h2 id="h-plan">Your gear after the plan</h2>
+        <p class="lede" style="margin:-6px 0 12px;font-size:.88rem">Upgraded pieces are highlighted, unchanged ones are dimmed. The steps below list one row per piece, highest priority first.</p>
+        <div class="cartbar" id="h-cart" hidden></div>
+        <div class="summary">
+          <div class="stat"><div class="label">Weighted gear score</div><div class="v up" id="s-gain">—</div></div>
+          <div class="stat"><div class="label">Milestones unlocked</div><div class="v" id="s-ms">—</div></div>
+          <div class="stat"><div class="label">Pieces to upgrade</div><div class="v" id="s-steps">—</div></div>
+        </div>
+        <p class="editlink"><a href="#h-gear">Edit your gear</a> · tap a piece to jump to it</p>
+        <div class="preview" id="preview" aria-label="Your gear after this plan"></div>
+        <div class="why" id="why"></div>
+        <h3 class="sub">Steps</h3>
+        <ol class="plan" id="plan"></ol>
+        <div class="notes" id="notes"></div>
+        <div class="pts">
+          <h3 class="sub">Event points for this plan</h3>
+          <div class="tbl"><table id="pts-table">
+            <thead><tr><th>Event</th><th>When</th><th class="r">Points</th></tr></thead><tbody></tbody></table></div>
+          <p class="foot">Only Forgehammers and Mithril are counted: event guides list no points for XP or Mythic Gear. Points are scored when you spend them, so save these upgrades for the event day. Values from Kingshot Optimizer's event guides.</p>
+        </div>
+        <details>
+          <summary>How the order is chosen</summary>
+          <p>Each piece's value is stat × (1 + 0.1 × mastery) × profile weight. Every candidate move (one mastery level, enhancement levels, an ascension, or crossing an imbuement gate together with the mastery it needs) is scored by weighted gain divided by the share of each resource it uses. Locked resources (Forgehammers, Mythic Gear, Mithril and XP in Red gear) count 10× more than XP in Mythic gear, which can be reforged. The best move is applied and the scan repeats. The whole plan runs twice, once chasing milestone bonuses and once on stats alone, and the planner keeps whichever version scores higher, because a greedy pass can lock in an early milestone that blocks a better use of the same Mithril.</p>
+          <p>In Expedition mode the planner never stops at R140 or R180, since those imbuements only give Conquest bonuses; it still pays them on the way to R160 or R200. In Conquest mode it's the reverse: R140 and R180 count, and it won't pay for R120, R160 or R200 just for their troop bonuses. Hero bonuses get a neutral weight of 1 per %, since they help every troop type.</p>
+        </details>
+      </section>
+
+
+    </div>
+  </div>
+
+  <div class="packs-full">
+      <section class="panel shop" aria-labelledby="h-shop">
+        <div class="shop-head">
+          <h2 id="h-shop">Shop packs</h2>
+          <div class="tabs" role="tablist" aria-label="Pack type">
+            <button type="button" role="tab" id="tab-mith" data-tab="mith" aria-controls="tp-mith">Mithril</button>
+            <button type="button" role="tab" id="tab-fh" data-tab="fh" aria-controls="tp-fh">Forgehammers</button>
+            <button type="button" role="tab" id="tab-hero" data-tab="hero" aria-controls="tp-hero">Hero gear</button>
+          </div>
+        </div>
+      <p class="foot" style="margin:-4px 0 12px">Tap Try on any pack to add it to your plan. Packs you try in one tab also count in the other tabs.</p>
+      <div class="cartbar" id="h-cart2" hidden></div>
+      <div class="tabpanel" id="tp-mith" role="tabpanel" aria-labelledby="tab-mith">
+        <p class="lede" style="margin:-6px 0 12px;font-size:.88rem">Packs unlock in order each week: $5, $10, $20, $50, then the $100 pack up to 20 times. Tick what you've already bought this week (its Mithril should already be in the Mithril box above). The table shows what each next pack would add to the plan.</p>
+        <div class="bought">
+          <label class="pk"><input type="checkbox" id="b-5"><span>$5 <small>1 Mithril</small></span></label>
+          <label class="pk"><input type="checkbox" id="b-10"><span>$10 <small>2 Mithril</small></span></label>
+          <label class="pk"><input type="checkbox" id="b-20"><span>$20 <small>4 Mithril</small></span></label>
+          <label class="pk"><input type="checkbox" id="b-50"><span>$50 <small>10 Mithril</small></span></label>
+          <label class="pk pk-n"><span>$100 bought <small>20 Mithril each</small></span><input type="number" id="b-100" min="0" max="20" step="1"></label>
+        </div>
+        <div id="pack-verdict" class="notes"></div>
+        <div class="chart-box" id="pack-chart"></div>
+        <div class="tbl"><table id="pack-table">
+          <thead><tr><th>Next pack</th><th class="r">Spent</th><th class="r">Mithril</th><th class="r">Total gain</th><th class="r">This pack</th><th class="r">Gain per $100</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+        <p class="foot">Gain is measured against the plan with no extra purchase, as a % of your current weighted score (gear stats plus the milestone bonuses you already own). Mithril only pays off in chunks: 50 for a R200 imbuement, or 50 to go from R139 through R140 to R160. Packs that add 0% are building toward the next unlock.</p>
+      </div>
+
+      <div class="tabpanel" id="tp-fh" role="tabpanel" aria-labelledby="tab-fh">
+        <p class="lede" style="margin:-6px 0 12px;font-size:.88rem">Same weekly order: $5, $10, $20, $50, then $100 up to 20 times. Tick what you've already bought (its Forgehammers should already be in the box above).</p>
+        <div class="bought">
+          <label class="pk"><input type="checkbox" id="fb-5"><span>$5</span></label>
+          <label class="pk"><input type="checkbox" id="fb-10"><span>$10</span></label>
+          <label class="pk"><input type="checkbox" id="fb-20"><span>$20</span></label>
+          <label class="pk"><input type="checkbox" id="fb-50"><span>$50</span></label>
+          <label class="pk pk-n"><span>$100 bought</span><input type="number" id="fb-100" min="0" max="20" step="1"></label>
+        </div>
+        <div class="assume">
+          <label class="field"><span class="label">Forgehammers per $5</span><input id="fa-fh" type="number" min="0" step="1"></label>
+          <label class="field wide" hidden><span class="label">Also buying Mithril packs this week</span><select id="fa-combo"></select></label>
+        </div>
+        <div id="fpack-verdict" class="notes"></div>
+        <div class="chart-box" id="fpack-chart"></div>
+        <div class="tbl"><table id="fpack-table">
+          <thead><tr><th>Next pack</th><th class="r">Spent</th><th class="r">Forgehammers</th><th class="r">Total gain</th><th class="r">This pack</th><th class="r">Gain per $100</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+        <p class="foot">Pack contents scale with price ($10 = 24 hammers, $100 = 240); change the box if a tier differs. Mastery above level 10 also costs Mythic Gear, so extra hammers only pay off while you have Mythic Gear to match.</p>
+      </div>
+
+      <div class="tabpanel" id="tp-hero" role="tabpanel" aria-labelledby="tab-hero">
+        <p class="lede" style="margin:-6px 0 12px;font-size:.88rem">Same weekly order: $5, $10, $20, $50, then $100 up to 20 times. Each pack gives 100-XP enhancement parts and Lucky Hero Gear Chests. Tick what you've already bought (its XP and Mythic Gear should already be in the boxes above).</p>
+        <div class="bought">
+          <label class="pk"><input type="checkbox" id="hb-5"><span>$5</span></label>
+          <label class="pk"><input type="checkbox" id="hb-10"><span>$10</span></label>
+          <label class="pk"><input type="checkbox" id="hb-20"><span>$20</span></label>
+          <label class="pk"><input type="checkbox" id="hb-50"><span>$50</span></label>
+          <label class="pk pk-n"><span>$100 bought</span><input type="number" id="hb-100" min="0" max="20" step="1"></label>
+        </div>
+        <div class="assume">
+          <label class="field"><span class="label">XP parts per $5</span><input id="ha-xp" type="number" min="0" step="1"></label>
+          <label class="field"><span class="label">Chests per $5</span><input id="ha-ch" type="number" min="0" step="1"></label>
+          <label class="field"><span class="label">Mythic per 100 chests</span><input id="ha-rate" type="number" min="0" step="0.1"></label>
+          <label class="field wide" hidden><span class="label">Also buying Mithril packs this week</span><select id="ha-combo"></select></label>
+        </div>
+        <div id="hpack-verdict" class="notes"></div>
+        <div class="chart-box" id="hpack-chart"></div>
+        <div class="tbl"><table id="hpack-table">
+          <thead><tr><th>Next pack</th><th class="r">Spent</th><th class="r">XP</th><th class="r">Mythic</th><th class="r">Total gain</th><th class="r">This pack</th><th class="r">Gain per $100</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+        <p class="foot">Pack contents scale with price, like the Mithril packs ($10 = twice the $5 pack, $100 = twenty times). Change the three boxes if a tier differs. Mythic Gear from chests is the average drop rounded down; real chest luck will vary. Gain is measured against the plan with your resources plus the Mithril packs chosen above, so you can see how the two shops work together.</p>
+      </div>
+      </section>
+  </div>
+
+  <footer>Game data from Kingshot Optimizer's reference tables (<a href="https://kingshotoptimizer.com/hero-gear/references/xp-costs/" target="_blank" rel="noopener">XP</a>, <a href="https://kingshotoptimizer.com/hero-gear/references/forgehammer-costs/" target="_blank" rel="noopener">Forgehammers</a>, <a href="https://kingshotoptimizer.com/hero-gear/references/imbuement-costs/" target="_blank" rel="noopener">imbuements</a>, <a href="https://kingshotoptimizer.com/hero-gear/build-profiles/" target="_blank" rel="noopener">profiles</a>). Independent fan tool, not affiliated with Kingshot or Kingshot Optimizer. Mythic per-level XP between the published 5-level marks is interpolated so every published total matches.</footer>
+  </div>
+  <footer class="sitefoot"><span>KS Tools · free calculators for Kingshot players</span><span>Independent fan project, not affiliated with Kingshot or Century Games.</span></footer>
+</div>
+<script src="../assets/hero-gear.js"></script>
+</body>
+</html>

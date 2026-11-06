@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kingshot Governor Gear Planner – Satin, Threads & Vision calculator | KS Tools</title>
+<meta name="description" content="Free Kingshot governor gear calculator: enter your Satin, Gilded Threads and Artisan's Vision and get the best upgrade order, set bonuses, and the best Master's Collection chests to pick.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Kingshot Governor Gear Planner – Satin, Threads & Vision calculator | KS Tools">
+<meta property="og:description" content="Free Kingshot governor gear calculator: enter your Satin, Gilded Threads and Artisan's Vision and get the best upgrade order, set bonuses, and the best Master's Collection chests to pick.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23b8430f'/%3E%3Cpath d='M9 22l9-12 2 2-9 12zM18 8l6 6' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <nav class="sitenav" aria-label="Site">
+    <a class="brand" href="../">KS <span>Tools</span></a>
+    <div class="apptabs"><a href="../hero-gear/">Hero Gear</a><a href="../governor-gear/" aria-current="page">Governor Gear</a></div>
+  </nav>
+<div id="app-gov">
+  <header>
+    <div>
+      <h1>Governor Gear Planner</h1>
+      <p class="lede">Plan upgrades for your 6 governor gear pieces: what each target costs in Satin, Gilded Threads and Artisan's Vision, what it adds, and the best way to spend the materials you have.</p>
+    </div>
+  </header>
+
+  <section class="panel start" aria-labelledby="gv-h-start">
+    <div class="start-head">
+      <h2 id="gv-h-start">Start here</h2>
+      <span class="acct" id="gv-acct" role="status"></span>
+    </div>
+    <ol class="howto">
+      <li><b>Enter your materials and the level of each piece,</b> or paste a build code someone shared and press Import. Governor gear unlocks at Town Center 22. "Set all 6 pieces to" saves typing when most pieces share a level.</li>
+      <li><b>Check your troop priorities.</b> They start from your Hero Gear settings.</li>
+      <li><b>Follow the plan</b> on the right: what to upgrade, in which order, and why.</li>
+    </ol>
+    <label class="field" style="margin-top:4px"><span class="label">Governor build code · updates as you edit</span>
+      <textarea id="gv-code" spellcheck="false" placeholder="Paste a GOV: code here, then press Import code"></textarea>
+    </label>
+    <div class="btns" style="margin-top:10px">
+      <button id="gv-import" type="button" class="primary">Import code</button>
+      <button id="gv-export" type="button">Copy my code</button>
+      <button id="gv-blank" type="button">Start from blank</button>
+      <button id="gv-example" type="button">Load example</button>
+    </div>
+    <p id="gv-msg" class="msg" role="status"></p>
+  </section>
+
+  <div class="grid">
+    <div class="col">
+      <section class="panel" aria-labelledby="gv-h-inv">
+        <h2 id="gv-h-inv"><span class="stepn">1</span>Your materials</h2>
+        <div class="gv-inv">
+          <label class="field"><span class="label">Satin</span><input id="gv-satin" type="number" min="0" step="100"></label>
+          <label class="field"><span class="label">Gilded Threads</span><input id="gv-gt" type="number" min="0" step="1"></label>
+          <label class="field"><span class="label">Artisan's Vision</span><input id="gv-av" type="number" min="0" step="1"></label>
+        </div>
+        <label class="check"><input id="gv-exch" type="checkbox">
+          <span>Use Material Exchange<small>Trade 5 Gilded Threads for 1 Artisan's Vision when Artisan's Vision runs short. The game limits how many trades you can make, so check how many are open to you.</small></span>
+        </label>
+      </section>
+
+      <section class="panel" aria-labelledby="gv-h-pieces">
+        <h2 id="gv-h-pieces"><span class="stepn">2</span>Your governor gear</h2>
+        <p class="lede" style="margin:-6px 0 10px;font-size:.88rem">Enter the level each piece is at in game. From Mythic T3 0★ each level takes 5 purchases; "2/5" means 2 of the 5 are done.</p>
+        <div class="gv-all">
+          <span class="label">Set all 6 pieces to</span>
+          <div class="sel2"><select id="gv-all-l" aria-label="Level for all pieces"></select><select id="gv-all-s" class="st" aria-label="Purchases toward the next level"></select></div>
+          <div class="btns"><button id="gv-all-now" type="button" class="primary">Apply to all</button></div>
+        </div>
+        <div id="gv-pieces"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="gv-h-pri">
+        <h2 id="gv-h-pri"><span class="stepn">3</span>Troop priorities</h2>
+        <p class="lede" style="margin:-6px 0 12px;font-size:.88rem">Uses the same weights as the Hero Gear tab: each troop's Health + Lethality weight from the build profile, scaled by how many of that troop you field. Governor gear boosts Attack and Defense, so both count. These start from your Hero Gear settings.</p>
+        <div class="opts" style="margin-top:0">
+          <label class="field"><span class="label">Build profile</span>
+            <select id="gv-prof">
+              <option value="growth">Early Game Growth (PvE)</option>
+              <option value="combat">Early Game Combat (PvP 50/20/30)</option>
+              <option value="gen4">Future-proofed (gen 4+)</option>
+              <option value="flat">Unweighted</option>
+            </select></label>
+          <label class="field"><span class="label">Plan for</span>
+            <select id="gv-for">
+              <option value="att">Attack rally</option>
+              <option value="def">Defense</option>
+              <option value="mix">A mix of both</option>
+            </select></label>
+        </div>
+        <div class="forms" style="margin-top:12px">
+          <fieldset><legend class="label">Attack rally</legend>
+            <div class="fr"><label class="field"><span class="label">Cav %</span><input id="gv-fa-C" type="number" min="0" max="100"></label>
+            <label class="field"><span class="label">Inf %</span><input id="gv-fa-I" type="number" min="0" max="100"></label>
+            <label class="field"><span class="label">Arch %</span><input id="gv-fa-A" type="number" min="0" max="100"></label></div>
+            <small class="fs" id="gv-fs-att"></small></fieldset>
+          <fieldset><legend class="label">Defense</legend>
+            <div class="fr"><label class="field"><span class="label">Cav %</span><input id="gv-fd-C" type="number" min="0" max="100"></label>
+            <label class="field"><span class="label">Inf %</span><input id="gv-fd-I" type="number" min="0" max="100"></label>
+            <label class="field"><span class="label">Arch %</span><input id="gv-fd-A" type="number" min="0" max="100"></label></div>
+            <small class="fs" id="gv-fs-def"></small></fieldset>
+        </div>
+        <label class="field mixf" id="gv-mixf"><span class="label">Mix: how your fights split</span>
+          <input id="gv-mix" type="range" min="0" max="100" step="5"><span class="mixo" id="gv-mix-o"></span></label>
+        <p class="gv-wout" id="gv-wout"></p>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel results" aria-labelledby="gv-h-res">
+        <h2 id="gv-h-res">Best use of your materials</h2>
+        <p class="lede" style="margin:-6px 0 12px;font-size:.88rem">Starting from your levels, this is where your materials do the most for the troops you care about. Upgraded pieces are highlighted.</p>
+        <div class="cartbar" id="gv-cart" hidden></div>
+        <div id="gv-opt-sum" class="notes"></div>
+        <p class="editlink" style="margin-top:12px"><a href="#gv-h-pieces">Edit your gear</a> · tap a piece to jump to it</p>
+        <div class="preview" id="gv-cards" aria-label="Your governor gear after the plan"></div>
+        <div class="tbl"><table id="gv-sum">
+          <thead><tr><th>Stat</th><th class="r">Now</th><th class="r">After plan</th><th class="r">Change</th></tr></thead>
+          <tbody></tbody></table></div>
+        <p class="foot">A piece's % boosts both Attack and Defense of its troop type. The 3-piece set bonus adds Defense and the 6-piece bonus adds Attack, for all troop types.</p>
+        <div class="why" id="gv-why" hidden></div>
+        <h3 class="sub" id="gv-steps-h" style="margin-top:16px">Steps</h3>
+        <ol class="plan" id="gv-plan"></ol>
+        <div class="btns" style="margin-top:8px"><button id="gv-more" type="button" hidden></button></div>
+        <h3 class="sub" style="margin-top:16px">Materials</h3>
+        <div class="tbl"><table id="gv-mat">
+          <thead><tr><th></th><th class="r">Satin</th><th class="r">GT</th><th class="r">AV</th></tr></thead>
+          <tbody></tbody></table></div>
+        <details>
+          <summary>How the order is chosen</summary>
+          <p>Each pick is the purchase, or short group of purchases, with the best weighted gain per material spent. A piece's % counts twice, for the Attack and the Defense of its troop type, times that troop's weight. Set bonuses help every troop type, so they count once per troop. Materials are weighted by scarcity: each one costs (amount used × amount you started with ÷ amount left²), so a material that is running low counts for more.</p>
+          <p>To avoid stopping just short of a set bonus, the planner also looks ahead: it tries finishing the current level, the level after, and raising the pieces needed for the next 3-piece and 6-piece set bonus together.</p>
+        </details>
+      </section>
+    </div>
+  </div>
+
+  <div class="full">
+    <section class="panel shop" aria-labelledby="gv-h-shop">
+      <div class="shop-head">
+        <h2 id="gv-h-shop">Shop packs</h2>
+        <div class="gvtabs" role="tablist" aria-label="Pack type">
+          <button type="button" role="tab" id="gvtab-master" data-tab="master" aria-controls="gvtp-master">Master's Collection</button>
+          <button type="button" role="tab" id="gvtab-tool" data-tab="tool" aria-controls="gvtp-tool">Tool Pack</button>
+          <button type="button" role="tab" id="gvtab-enh" data-tab="enh" aria-controls="gvtp-enh">Enhancement Pack</button>
+        </div>
+      </div>
+      <p class="foot" id="gv-shop-unit" style="margin:-4px 0 12px"></p>
+      <div class="cartbar" id="gv-cart2" hidden></div>
+
+      <div class="tabpanel" id="gvtp-master" role="tabpanel" aria-labelledby="gvtab-master">
+        <p class="lede" style="margin:0 0 12px;font-size:.88rem">5 levels, bought in order: $5, $10, $20, $50, $100. Each level lets you pick one of 3 chests. Tick the levels you've already opened (their materials should already be in step 1).</p>
+        <div class="bought">
+          <label class="pk"><input type="checkbox" id="gvm-0"><span>$5</span></label>
+          <label class="pk"><input type="checkbox" id="gvm-1"><span>$10</span></label>
+          <label class="pk"><input type="checkbox" id="gvm-2"><span>$20</span></label>
+          <label class="pk"><input type="checkbox" id="gvm-3"><span>$50</span></label>
+          <label class="pk"><input type="checkbox" id="gvm-4"><span>$100</span></label>
+        </div>
+        <div id="gvm-verdict" class="notes"></div>
+        <div class="tbl"><table id="gvm-table">
+          <thead><tr><th>Buy</th><th class="r">Spent</th><th>Best chests</th><th class="r">Total gain</th><th class="r">Gain per $100</th><th></th></tr></thead>
+          <tbody></tbody></table></div>
+        <h3 class="sub" style="margin-top:16px">Or pick the chests yourself</h3>
+        <div class="lvpicks" id="gvm-pick"></div>
+        <p class="gv-selgain" id="gvm-selgain"></p>
+        <p class="foot">Per $5: <b>Chest A</b> 54 AV · 48 GT · 4,800 Satin. <b>Chest B</b> 40 AV · 80 GT · 8,000 Satin. <b>Chest C</b> 180 GT · 18,000 Satin. Bigger levels give the same times price ÷ 5 ($100 = ×20). Each row is the best combination of chests if you buy every level up to that one; every combination is tested.</p>
+      </div>
+
+      <div class="tabpanel" id="gvtp-tool" role="tabpanel" aria-labelledby="gvtab-tool">
+        <p class="lede" style="margin:0 0 12px;font-size:.88rem">Governor Gear Tool Pack, bought in order: $5, $10, $20, $50, then $100 up to 20 times. Tick what you've already bought (its materials should already be in step 1).</p>
+        <div class="bought">
+          <label class="pk"><input type="checkbox" id="gvt-5"><span>$5</span></label>
+          <label class="pk"><input type="checkbox" id="gvt-10"><span>$10</span></label>
+          <label class="pk"><input type="checkbox" id="gvt-20"><span>$20</span></label>
+          <label class="pk"><input type="checkbox" id="gvt-50"><span>$50</span></label>
+          <label class="pk pk-n"><span>$100 bought</span><input type="number" id="gvt-100" min="0" max="20" step="1"></label>
+        </div>
+        <div id="gvt-verdict" class="notes"></div>
+        <div class="tbl"><table id="gvt-table">
+          <thead><tr><th>Next pack</th><th class="r">Spent</th><th class="r">Gives</th><th class="r">Total gain</th><th class="r">This pack</th><th class="r">Gain per $100</th><th></th></tr></thead>
+          <tbody></tbody></table></div>
+        <p class="foot">Per $5: 54 GT · 5,400 Satin. Bigger packs give the same times price ÷ 5.</p>
+      </div>
+
+      <div class="tabpanel" id="gvtp-enh" role="tabpanel" aria-labelledby="gvtab-enh">
+        <p class="lede" style="margin:0 0 12px;font-size:.88rem">Governor Gear Enhancement Pack, bought in order: $5, $10, $20, $50, then $100 up to 20 times. Tick what you've already bought (its materials should already be in step 1).</p>
+        <div class="bought">
+          <label class="pk"><input type="checkbox" id="gve-5"><span>$5</span></label>
+          <label class="pk"><input type="checkbox" id="gve-10"><span>$10</span></label>
+          <label class="pk"><input type="checkbox" id="gve-20"><span>$20</span></label>
+          <label class="pk"><input type="checkbox" id="gve-50"><span>$50</span></label>
+          <label class="pk pk-n"><span>$100 bought</span><input type="number" id="gve-100" min="0" max="20" step="1"></label>
+        </div>
+        <div id="gve-verdict" class="notes"></div>
+        <div class="tbl"><table id="gve-table">
+          <thead><tr><th>Next pack</th><th class="r">Spent</th><th class="r">Gives</th><th class="r">Total gain</th><th class="r">This pack</th><th class="r">Gain per $100</th><th></th></tr></thead>
+          <tbody></tbody></table></div>
+        <p class="foot">Per $5: 35 AV · 18 GT · 1,800 Satin. Bigger packs give the same times price ÷ 5.</p>
+      </div>
+    </section>
+  </div>
+
+  <footer>Game data from <a href="https://kingshotoptimizer.com/governor-gear/references" target="_blank" rel="noopener">Kingshot Optimizer's governor gear references</a> and the <a href="https://kingshot.net/database/governor-gear" target="_blank" rel="noopener">kingshot.net governor gear database</a>. Legendary T6 0★ uses 1,110 Artisan's Vision (222 per purchase), which matches the published total of 20,255 per piece. Independent fan tool, not affiliated with Kingshot.</footer>
+</div>
+  <footer class="sitefoot"><span>KS Tools · free calculators for Kingshot players</span><span>Independent fan project, not affiliated with Kingshot or Century Games.</span></footer>
+</div>
+<script src="../assets/governor-gear.js"></script>
+</body>
+</html>
