@@ -368,11 +368,9 @@ function renderWhy(st,r){
 }
 
 /* ---------- Gear preview ---------- */
-const ICONS={
-  Helm:'<path d="M5 14a7 7 0 0 1 14 0v5h-4.5v-4.5h-5V19H5z"/><path d="M12 7.5v6.5M8.5 11.5h7"/>',
-  Gloves:'<path d="M7.5 21v-7.5L5.2 9.6a1.2 1.2 0 0 1 2-1.3l1.8 2.4V5a1.2 1.2 0 0 1 2.4 0v5.2V4a1.2 1.2 0 0 1 2.4 0v6.2V5.2a1.2 1.2 0 0 1 2.4 0V13l.9-1.6a1.2 1.2 0 0 1 2.1 1.1L17 18v3z"/><path d="M7.5 18h9.5"/>',
-  Chest:'<path d="M8.5 3 4.5 5.8l1.8 4V20.5h11.4V9.8l1.8-4L15.5 3l-1.8 1.8h-3.4z"/><path d="M12 4.8v15.7M7.5 13.5h9"/>',
-  Boots:'<path d="M8 3h5.5v10.5l5.3 2.6a1.8 1.8 0 0 1 1 1.6V21H6v-3.5l2-3z"/><path d="M6 18h13.8"/>'};
+/* art: assets/hero_gear/10{slot 1-4}{troop 1-3}501.png (quality-5 art; card background shows Mythic/Ascended) */
+const TROOP_IMG={I:1,C:2,A:3};
+const gearImg=(troop,i)=>`../assets/hero_gear/10${i+1}${TROOP_IMG[troop]}501.png`;
 const enh=s=>'+'+(s.q==='R'?s.L-100:s.L);
 const cumXP=L=>{let c=0;for(let x=1;x<=L;x++)c+=XP[x];return c;};
 function renderPreview(st,r){
@@ -385,11 +383,10 @@ function renderPreview(st,r){
       const d=statOf(to.q,to.L)*(1+0.1*to.M)-statOf(from.q,from.L)*(1+0.1*from.M);
       if(p.stat==='L')dL+=d;else dH+=d;
       const up=to.L!==from.L||to.M!==from.M||to.q!==from.q;
-      const slot=SLOT_OF[i];
       const tip=`${t.name} ${p.name} (${p.stat==='H'?'Health':'Lethality'}) · ${to.q==='R'?'Ascended':'Mythic'} ${enh(to)} · Forge ${to.M} · ${fmt(Math.round(cumXP(to.L)/100)*100)} XP`;
       cards.push(`<div class="gcw ${up?'up':'same'}" tabindex="0" role="button" data-row="${t.k}${i}" aria-label="Edit ${t.name} ${p.name}">
         <div class="gc q${to.q}" title="${tip}" role="img" aria-label="${tip}">
-          <span class="ge">${enh(to)}</span><svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[slot]}</svg><span class="gf">Lv ${to.M}</span>
+          <span class="ge">${enh(to)}</span><img src="${gearImg(t.k,i)}" alt="" loading="lazy" decoding="async"><span class="gf">Lv ${to.M}</span>
         </div>
         <span class="gn">${p.name}</span>
         ${up?`<span class="gw">was ${enh(from)} · Lv ${from.M}</span>`:'<span class="gw">&nbsp;</span>'}</div>`);
