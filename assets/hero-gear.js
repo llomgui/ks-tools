@@ -375,7 +375,7 @@ const gearImg=(troop,i)=>`../assets/hero_gear/10${i+1}${TROOP_IMG[troop]}501.png
 const BADGE_SHAPE='<path class="bs" d="M12 1.5 21.5 4.5V13c0 5.5-4.3 9.2-9.5 11.2C6.8 22.2 2.5 18.5 2.5 13V4.5z"/>';
 const BADGE={
   I:'<path d="M12 7.2 16.6 8.8v3.6c0 2.8-2 4.6-4.6 5.6-2.6-1-4.6-2.8-4.6-5.6V8.8z" fill="none" stroke="#fff" stroke-width="1.9" stroke-linejoin="round"/>',
-  C:'<path d="M8.6 18.6c-.2-2.6.6-4.6 2.2-6l-2.5-.6c-.6-.2-.8-.8-.5-1.3l1.9-2.9c1-1.5 2.8-2.3 4.6-2l.6-1.6.9 1.9c1.6.9 2.5 2.7 2.3 4.6l-.4 3.1c-.1 1.6.2 3.2.9 4.8z" fill="#fff"/><circle cx="13.6" cy="9.4" r=".95" fill="#2f5f9e"/><path d="M15.6 8.6c.9 1.3 1.1 3 .5 4.6" fill="none" stroke="#2f5f9e" stroke-width=".9" stroke-linecap="round"/>',
+  C:'<path d="M16.9 18.4H8.8c0-2.5 1.1-4.1 2.7-5.3l-2.7.9c-.9.3-1.7-.6-1.3-1.5l.9-2c.6-1.4 1.6-2.5 2.9-3.2l.4-2 1.4 1.4c2.3.5 3.9 2.6 3.8 5-.1 2.3-.8 4.3 0 6.7z" fill="#fff"/><path d="M8.2 18.4h9.4v1.6H8.2z" fill="#fff"/><circle cx="12.2" cy="9.7" r=".9" fill="#2f5f9e"/><path d="M14.7 8.2c1.2 1.4 1.5 3.3.9 5.1" fill="none" stroke="#2f5f9e" stroke-width=".9" stroke-linecap="round"/>',
   A:'<g fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 6.5c5.6-.6 10 3.8 10.5 10.5"/><path d="M7 6.5l10.5 10.5"/><path d="M8.5 15.5l7-7M15.5 8.5h-2.6M15.5 8.5v2.6"/></g>'};
 Object.keys(BADGE).forEach(k=>BADGE[k]=`<svg class="hg-tb" viewBox="0 0 24 26" aria-hidden="true">${BADGE_SHAPE}${BADGE[k]}</svg>`);
 /* pill colour follows enhancement: 0-19 grey, 20-39 green, 40-59 blue, 60-79 purple, 80-99 gold, 100 red */
