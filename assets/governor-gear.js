@@ -89,9 +89,17 @@ const lvName=p=>{const {L,s}=lvAt(p);return L<0?'Not owned':LV[L].name+(s?` · $
 
 const PIECES=[{n:'Cloak',t:'I'},{n:'Breeches',t:'I'},{n:'Hood',t:'C'},{n:'Charmstone',t:'C'},{n:'Ring',t:'A'},{n:'Staff',t:'A'}];
 const TROOP={I:'Infantry',C:'Cavalry',A:'Archer'};
-/* art: assets/gear/{slot}005.png — slot 1 Hood(crown) 2 Charmstone 3 Cloak 4 Breeches 5 Ring 6 Staff; set 5 art, card background shows rarity */
+/* art: assets/gear/{slot}00{n}.png — slot 1 Hood(crown) 2 Charmstone 3 Cloak 4 Breeches 5 Ring 6 Staff;
+   n follows rarity: 2 Uncommon, 3 Rare, 4 Epic, 5 Epic T1, 6 Mythic, 7 Mythic T1+, 8 Legendary. Not owned: outline icon 0{slot}.png */
 const IMG_SLOT={Hood:1,Charmstone:2,Cloak:3,Breeches:4,Ring:5,Staff:6};
-const gearImg=n=>`<img src="../assets/gear/${IMG_SLOT[n]}005.png" alt="" loading="lazy" decoding="async">`;
+const tierOf=L=>{const m=LV[L].name.match(/ T(\d)/);return m?'T'+m[1]:'';};
+const starsOf=L=>+(LV[L].name.match(/(\d)★/)||[0,0])[1];
+function artSrc(n,L){
+  if(L<0)return `../assets/gear/0${IMG_SLOT[n]}.png`;
+  const r=LV[L].rar,t=!!tierOf(L);
+  const k=r==='Legendary'?8:r==='Mythic'?(t?7:6):r==='Epic'?(t?5:4):r==='Rare'?3:2;
+  return `../assets/gear/${IMG_SLOT[n]}00${k}.png`;}
+const gearImg=(n,L,id)=>`<img${id?` id="${id}"`:''} src="${artSrc(n,L)}" alt="" loading="lazy" decoding="async">`;
 const ORDER=[2,3,0,1,4,5];   /* game order: Cavalry, Infantry, Archer (saved data keeps its own order) */
 const TORDER=['C','I','A'];
 const RCLS={Uncommon:'rU',Rare:'rR',Epic:'rE',Mythic:'rM',Legendary:'rL'};
@@ -158,7 +166,7 @@ function optimize(st){
 const lvOptions='<option value="-1">Not owned</option>'+LV.map((l,i)=>`<option value="${i}">${l.name}</option>`).join('');
 const stOptions=[0,1,2,3,4].map(s=>`<option value="${s}">${s}/5</option>`).join('');
 $('gv-pieces').innerHTML=ORDER.map(i=>[PIECES[i],i]).map(([pc,i])=>`<div class="gv-piece" id="gv-row-${i}">
-  <div class="gv-pn">${gearImg(pc.n)}<span><b>${pc.n}</b><small>${TROOP[pc.t]}</small></span></div>
+  <div class="gv-pn">${gearImg(pc.n,-1,'gv-img-'+i)}<span><b>${pc.n}</b><small>${TROOP[pc.t]}</small></span></div>
   <div class="sel2">
     <select id="gv-cl-${i}" aria-label="${pc.n} level">${lvOptions}</select>
     <select id="gv-cs-${i}" class="st" aria-label="${pc.n} purchases toward next level">${stOptions}</select></div>
@@ -225,14 +233,17 @@ function shortLv(p0,p1){const a=lvAt(p0),b=lvAt(p1);if(a.L<0)return 'not owned';
 function renderCards(st){
   const ps0=st.pieces.map(x=>x.cur),ps1=plan?plan.ps:ps0;
   const s0=summary(ps0),s1=summary(ps1);
+  PIECES.forEach((pc,i)=>{const im=$('gv-img-'+i);if(im)im.src=artSrc(pc.n,lvAt(ps0[i]).L);});
   $('gv-cards').innerHTML=TORDER.map(t=>{
     const cards=PIECES.map((pc,i)=>({pc,i})).filter(x=>x.pc.t===t).map(({pc,i})=>{
       const p0=ps0[i],p1=ps1[i],{L,s}=lvAt(p1),up=p1!==p0;
       const cls=L<0?'r0':RCLS[LV[L].rar];
       const tip=`${TROOP[t]} ${pc.n} · ${lvName(p1)} · ${pct(STAT[p1])}%`;
       return `<div class="gcw ${up?'up':'same'}" tabindex="0" role="button" data-row="${i}" aria-label="Edit ${TROOP[t]} ${pc.n}">
-        <div class="gc ${cls}" title="${tip}"><span class="ge">${L<0?'':LV[L].name.split(' ').slice(1).join(' ')}</span>
-          ${gearImg(pc.n)}${s?`<span class="gf">${s}/5</span>`:''}</div>
+        <div class="gc gt ${cls}" title="${tip}" role="img" aria-label="${tip}">
+          ${L>=0&&tierOf(L)?`<span class="gt-tag">${tierOf(L)}</span>`:''}${gearImg(pc.n,L)}
+          ${L>=0?`<span class="gt-lbl">${'★'.repeat(starsOf(L))}<i>${'★'.repeat(3-starsOf(L))}</i></span>`:''}</div>
+        ${L>=0&&canStep(L)?`<span class="gt-bar" aria-hidden="true">${[0,1,2,3,4].map(k=>`<i${k<s?' class="on"':''}></i>`).join('')}</span>`:''}
         <span class="gn">${pc.n}</span>${L<0?'<span class="gw">Not owned</span>':''}
         ${up?`<span class="gw">was ${shortLv(p0,p1)}</span>`:''}</div>`;}).join('');
     const d=s1[t]-s0[t];
@@ -488,17 +499,26 @@ function render(){
   renderWeights(st);renderPlan(eff);renderCards(eff);renderMaterials(eff,st.inv,packs);renderWhy(eff);renderCart(parts);renderShop(st,parts);showAcct(st);
   if(document.activeElement!==$('gv-code'))$('gv-code').value=encodeGov(st);
   try{localStorage.setItem('hgp-gov-v1',JSON.stringify(st))}catch(e){}
+  setStale(false);
 }
 
 /* ---------- events ---------- */
 const say=(t,c)=>{const m=$('gv-msg');m.textContent=t;m.className='msg '+c;};
-let tmr;const soon=()=>{clearTimeout(tmr);tmr=setTimeout(render,80);};
+/* Optimizing can be slow with large inventories, so edits only mark the plan out of date;
+   the Optimize button (or Enter in a field) runs it. Edits are still saved as you type. Same behaviour as the hero gear page. */
+let stale=false;
+function setStale(v){stale=v;document.body.classList.toggle('is-stale',v);$('gv-opt').hidden=!v;}
+function saveDraft(){try{const st=readState();localStorage.setItem('hgp-gov-v1',JSON.stringify(st));
+  if(document.activeElement!==$('gv-code'))$('gv-code').value=encodeGov(st);}catch(e){}}
+let tmr;const edited=()=>{setStale(true);clearTimeout(tmr);tmr=setTimeout(saveDraft,300);};
 const app=$('app-gov');
-app.addEventListener('input',e=>{if(e.target.closest('.gv-all')||e.target.id==='gv-code')return;if(e.target.closest('.gv-inv,#gv-pieces')&&isExample)isExample=false;soon();});
+app.addEventListener('input',e=>{if(e.target.closest('.gv-all')||e.target.id==='gv-code')return;if(e.target.closest('.gv-inv,#gv-pieces')&&isExample)isExample=false;edited();});
 app.addEventListener('change',e=>{if(e.target.closest('.gv-all')||e.target.id==='gv-code')return;
   if(e.target.closest('#gvtp-master .bought'))cart.master=[null,null,null,null,null];
   if(e.target.closest('#gvtp-tool .bought'))cart.tool=0;
-  if(e.target.closest('#gvtp-enh .bought'))cart.enh=0;if(e.target.closest('.gv-inv,#gv-pieces')&&isExample)isExample=false;render();});
+  if(e.target.closest('#gvtp-enh .bought'))cart.enh=0;if(e.target.closest('.gv-inv,#gv-pieces')&&isExample)isExample=false;edited();});
+$('gv-opt').addEventListener('click',()=>render());
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&stale&&e.target.matches('#app-gov .panel input:not(#gv-code)')){e.preventDefault();render();}});
 $('gv-more').addEventListener('click',()=>{showAll=!showAll;render();});
 app.addEventListener('click',e=>{
   if(e.target.closest('.cart-clear')){cart=defCart();render();return;}

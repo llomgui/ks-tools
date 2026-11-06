@@ -50,6 +50,7 @@
     <p id="gv-msg" class="msg" role="status"></p>
   </section>
 
+  <button id="gv-opt" type="button" class="primary optfab" hidden>Optimize</button>
   <div class="grid">
     <div class="col">
       <section class="panel" aria-labelledby="gv-h-inv">
@@ -114,7 +115,8 @@
     <div class="col">
       <section class="panel results" aria-labelledby="gv-h-res">
         <h2 id="gv-h-res">Best use of your materials</h2>
-        <p class="lede" style="margin:-6px 0 12px;font-size:.88rem">Starting from your levels, this is where your materials do the most for the troops you care about. Upgraded pieces are highlighted.</p>
+        <p class="stale-msg" role="status">Inputs changed. Press <b>Optimize</b> (or Enter) to update the plan.</p>
+        <p class="lede" style="margin:-6px 0 12px;font-size:.88rem">Starting from your levels, this is where your materials do the most for the troops you care about. Upgraded pieces glow.</p>
         <div class="cartbar" id="gv-cart" hidden></div>
         <div id="gv-opt-sum" class="notes"></div>
         <p class="editlink" style="margin-top:12px"><a href="#gv-h-pieces">Edit your gear</a> · tap a piece to jump to it</p>

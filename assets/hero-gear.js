@@ -267,6 +267,7 @@ function render(){
   if($('acct').textContent)setTimeout(showAcct,0);
   try{localStorage.setItem('hgp-state-v3',JSON.stringify(st))}catch(e){}
   if(document.activeElement!==$('code')) $('code').value=encode(st);   /* the box always shows the code for the current form */
+  setStale(false);
 }
 
 /* ---------- Formations ---------- */
@@ -394,9 +395,9 @@ function renderPreview(st,r){
       const up=to.L!==from.L||to.M!==from.M||to.q!==from.q;
       const tip=`${t.name} ${p.name} (${p.stat==='H'?'Health':'Lethality'}) · ${to.q==='R'?'Ascended':'Mythic'} ${enh(to)} · Forge ${to.M} · ${fmt(Math.round(cumXP(to.L)/100)*100)} XP`;
       cards.push(`<div class="gcw ${up?'up':'same'}" tabindex="0" role="button" data-row="${t.k}${i}" aria-label="Edit ${t.name} ${p.name}">
-        <div class="gc hg q${to.q}" title="${tip}" role="img" aria-label="${tip}">
+        <div class="gc gt q${to.q}" title="${tip}" role="img" aria-label="${tip}">
           ${BADGE[t.k]}<img src="${gearImg(t.k,i)}" alt="" loading="lazy" decoding="async">
-          ${to.q==='R'?`<span class="hg-pill e${enhTier(to)}">${enh(to)}</span>`:''}<span class="hg-lv">Lv. ${to.M}</span>
+          ${to.q==='R'?`<span class="hg-pill e${enhTier(to)}">${enh(to)}</span>`:''}<span class="gt-lbl">Lv. ${to.M}</span>
         </div>
         <span class="gn">${p.name}</span>
         ${up?`<span class="gw">was ${enh(from)} · Lv ${from.M}</span>`:'<span class="gw">&nbsp;</span>'}</div>`);
@@ -616,13 +617,22 @@ document.querySelector('.tabs').addEventListener('keydown',e=>{
   if(e.key==='ArrowRight')i=(i+1)%3;else if(e.key==='ArrowLeft')i=(i+2)%3;else return;
   e.preventDefault();showTab(order[i]);$('tab-'+order[i]).focus();saveTab();});
 function saveTab(){try{const s=JSON.parse(localStorage.getItem('hgp-state-v3')||'null');if(s){s.shopTab=shopTab;localStorage.setItem('hgp-state-v3',JSON.stringify(s));}}catch(e){}}
-let tmr;const soon=()=>{clearTimeout(tmr);tmr=setTimeout(render,120)};
-document.addEventListener('input',e=>{if(!e.target.closest('#app-hero'))return;if(e.target.closest('.panel')&&e.target.id!=='code'){if(e.target.closest('.res,#gear')&&isExample){isExample=false;showAcct();}soon();}});
+/* Optimizing is costly (up to ~0.6 s on a phone), so edits only mark the plan out of date;
+   the Optimize button (or Enter in a field) runs it. Edits are still saved as you type. */
+let stale=false;
+function setStale(v){stale=v;document.body.classList.toggle('is-stale',v);$('btn-opt').hidden=!v;}
+function saveDraft(){try{const st=readState();st.hcart={...hcart};st.isExample=isExample;st.shopTab=shopTab;
+  localStorage.setItem('hgp-state-v3',JSON.stringify(st));
+  if(document.activeElement!==$('code'))$('code').value=encode(st);}catch(e){}}
+let tmr;const edited=()=>{setStale(true);clearTimeout(tmr);tmr=setTimeout(saveDraft,300)};
+document.addEventListener('input',e=>{if(!e.target.closest('#app-hero'))return;if(e.target.closest('.panel')&&e.target.id!=='code'){if(e.target.closest('.res,#gear')&&isExample){isExample=false;showAcct();}edited();}});
 document.addEventListener('change',e=>{if(!e.target.closest('#app-hero'))return;
   if(e.target.closest('#tp-mith .bought'))hcart.mith=0;
   if(e.target.closest('#tp-fh .bought'))hcart.fh=0;
   if(e.target.closest('#tp-hero .bought'))hcart.hero=0;
-  if(e.target.id!=='code')render()});
+  if(e.target.id!=='code')edited()});
+$('btn-opt').addEventListener('click',()=>render());
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&stale&&e.target.matches('#app-hero .panel input:not(#code)')){e.preventDefault();render();}});
 $('app-hero').addEventListener('click',e=>{
   if(e.target.closest('.hcart-clear')){hcart={mith:0,fh:0,hero:0};render();return;}
   const b=e.target.closest('.selbtn[data-hk]');
