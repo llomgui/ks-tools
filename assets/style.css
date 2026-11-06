@@ -88,7 +88,7 @@ tr.best td{background:var(--ember-soft)}
 .gc.qR .ge{color:#fca5a5}.gc.qM .ge{color:#fde68a}
 .gc .gf{position:absolute;bottom:4px;right:6px;font-family:var(--mono);font-size:.7rem;color:#fff;background:rgba(0,0,0,.38);border-radius:4px;padding:0 4px;font-variant-numeric:tabular-nums}
 /* shared in-game tile (hero gear + governor gear): same shape, colours, labels and upgrade glow */
-.gc.gt{width:84%;overflow:visible;border-radius:16%;container-type:inline-size;
+.gc.gt{width:min(84%,96px);overflow:visible;border-radius:16%;container-type:inline-size;
   box-shadow:inset 0 0 0 3px rgba(255,255,255,.28),inset 0 -6px 10px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.3)}
 .gc.gt.qR,.gc.gt.rL{background:linear-gradient(180deg,#f0807a,#d9534f)}
 .gc.gt.qM,.gc.gt.rM{background:linear-gradient(180deg,#f5c25a,#d98c22)}
@@ -102,15 +102,25 @@ tr.best td{background:var(--ember-soft)}
   -webkit-text-stroke:3px #3d2a0e;paint-order:stroke fill;font-variant-numeric:tabular-nums;white-space:nowrap}
 .gt-lbl{bottom:3%;right:7%}
 .gt-tag{top:5%;left:7%}
-.gt-lbl i{font-style:normal;color:rgba(0,0,0,.28);-webkit-text-stroke:0}
-.gcw.up .gc.gt{outline:0;box-shadow:inset 0 0 0 3px rgba(255,255,255,.28),inset 0 -6px 10px rgba(0,0,0,.12),0 0 0 2px #ffd36a,0 0 14px 2px rgba(255,196,64,.55)}
+.gt-tag{display:flex;flex-direction:column;align-items:flex-start}
+.gt-stars{display:flex;flex-direction:column;font-size:.8em;line-height:.95;margin-top:2%}
+.gt-stars b{font-weight:900}
+.gcw.up .gc.gt{outline:0;box-shadow:inset 0 0 0 3px rgba(255,255,255,.28),inset 0 -6px 10px rgba(0,0,0,.12),0 0 0 3px #ffd36a,0 0 16px 4px rgba(255,196,64,.6)}
+/* upgrade marker: green arrow at the bottom-left of the tile (like the in-game upgrade arrow) */
+.gcw.up .gc.gt::after{content:"";position:absolute;left:-7%;bottom:-7%;width:26%;aspect-ratio:1;border-radius:50%;
+  background:#2fb35a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 4 20 13h-5v7H9v-7H4z' fill='%23fff'/%3E%3C/svg%3E") center/70% no-repeat;
+  border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.45)}
+.gcw.up .gw{color:var(--good);font-weight:600}
 .gcw.same .gn{color:var(--muted);font-weight:500}
+/* pieces the plan leaves alone recede, so upgrades stand out (only once a plan has upgrades) */
+.preview.has-up .gcw.same .gc.gt{filter:saturate(.35) brightness(.8);opacity:.55;transition:filter .2s,opacity .2s}
+.preview.has-up .gcw.same:hover .gc.gt,.preview.has-up .gcw.same:focus-visible .gc.gt{filter:none;opacity:1}
 /* 5-step progress under a tile (governor gear purchases toward the next level) */
-.gt-bar{display:flex;gap:2px;width:84%;margin-top:3px}
+.gt-bar{display:flex;gap:2px;width:min(84%,96px);margin-top:3px}
 .gt-bar i{flex:1;height:5px;border-radius:2px;background:var(--line,rgba(127,127,127,.3))}
 .gt-bar i.on{background:var(--good,#2e9e5b)}
 /* hero gear extras: troop badge and enhancement pill */
-#preview .pv-row{gap:14px 14px;padding:8px 8px 0 8px}
+.preview .pv-row{gap:14px 14px;padding:8px 8px 0 8px}
 .gc.gt .hg-tb{position:absolute;top:-11%;left:-11%;width:28%;height:auto;filter:drop-shadow(0 1px 2px rgba(0,0,0,.45))}
 .hg-tb .bs{fill:#2f5f9e;stroke:#d6e6f7;stroke-width:1.6}
 .hg-pill{position:absolute;top:-5%;right:-5%;padding:0 6cqw;border-radius:99px;border:2px solid rgba(255,255,255,.85);
@@ -205,14 +215,6 @@ button.danger{border-color:var(--red);color:var(--red)}
 @media (max-width:460px){.gv-sliders{grid-template-columns:minmax(0,1fr)}}
 .gv-sliders input[type=range]{width:100%;accent-color:var(--ember)}
 .gv-sliders output{font-family:var(--mono);color:var(--ink);letter-spacing:0;text-transform:none;margin-left:4px}
-#app-gov .preview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.gv-grp{min-width:0;display:flex;flex-direction:column;gap:6px}
-.gv-th{display:flex;flex-direction:column;line-height:1.25}
-.gv-th strong{font-family:var(--display);letter-spacing:.05em;font-size:.92rem}
-.gv-th span{font-family:var(--mono);font-size:.74rem;color:var(--muted);font-variant-numeric:tabular-nums}
-.gv-th b{color:var(--good);font-weight:500}
-.gv-row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;align-items:start}
-@media (max-width:520px){#app-gov .preview{gap:8px}.gv-row2{grid-template-columns:minmax(0,1fr)}}
 #app-gov .gcw .gw{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .gc.r0{background:linear-gradient(160deg,#5b6571,#2a3038)}
 .gc.rU{background:linear-gradient(160deg,#2f7d4a,#14361f)}
@@ -324,10 +326,11 @@ footer{margin-top:28px;font-size:.8rem;color:var(--muted);max-width:80ch}
 footer a{color:var(--ember)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
-/* Optimize button: shown only when inputs changed since the last plan */
-.optfab{position:fixed;right:16px;bottom:16px;z-index:50;padding:12px 22px;border-radius:999px;font-weight:700;font-size:1rem;
-  box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer}
-.stale-msg{display:none}
-body.is-stale .stale-msg{display:block;margin:-4px 0 12px;padding:8px 12px;border-radius:8px;font-size:.88rem;
-  background:var(--ember-soft);color:var(--ink,inherit);border:1px solid var(--ember)}
-body.is-stale .results>:not(h2):not(.stale-msg),body.is-stale .panel.shop{opacity:.5;transition:opacity .2s}
+/* "Updating plan…" label next to the results title while a recalculation is pending */
+.upd{display:none;margin-left:10px;padding:2px 9px;border-radius:99px;vertical-align:middle;
+  font:600 .72rem/1.6 var(--body,system-ui),sans-serif;letter-spacing:0;text-transform:none;
+  color:var(--ember);background:var(--ember-soft);border:1px solid var(--ember)}
+body.is-updating .upd{display:inline-block;animation:upd 1s ease-in-out infinite alternate}
+@keyframes upd{from{opacity:.55}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){body.is-updating .upd{animation:none}}
+#gv-mat tr.gv-note td{color:var(--muted);font-size:.8rem;font-style:italic}

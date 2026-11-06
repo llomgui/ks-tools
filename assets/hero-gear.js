@@ -267,7 +267,7 @@ function render(){
   if($('acct').textContent)setTimeout(showAcct,0);
   try{localStorage.setItem('hgp-state-v3',JSON.stringify(st))}catch(e){}
   if(document.activeElement!==$('code')) $('code').value=encode(st);   /* the box always shows the code for the current form */
-  setStale(false);
+  setPending(false);
 }
 
 /* ---------- Formations ---------- */
@@ -407,6 +407,7 @@ function renderPreview(st,r){
     row.innerHTML=`<div class="pv-head"><strong>${t.name}</strong><span>Lethality ${fmtD(dL)} · Health ${fmtD(dH)}</span></div><div class="pv-row">${cards.join('')}</div>`;
     box.appendChild(row);
   });
+  box.classList.toggle('has-up',!!box.querySelector('.gcw.up'));
 }
 
 /* ---------- Packs (Mithril and Hero gear) ---------- */
@@ -617,22 +618,25 @@ document.querySelector('.tabs').addEventListener('keydown',e=>{
   if(e.key==='ArrowRight')i=(i+1)%3;else if(e.key==='ArrowLeft')i=(i+2)%3;else return;
   e.preventDefault();showTab(order[i]);$('tab-'+order[i]).focus();saveTab();});
 function saveTab(){try{const s=JSON.parse(localStorage.getItem('hgp-state-v3')||'null');if(s){s.shopTab=shopTab;localStorage.setItem('hgp-state-v3',JSON.stringify(s));}}catch(e){}}
-/* Optimizing is costly (up to ~0.6 s on a phone), so edits only mark the plan out of date;
-   the Optimize button (or Enter in a field) runs it. Edits are still saved as you type. */
-let stale=false;
-function setStale(v){stale=v;document.body.classList.toggle('is-stale',v);$('btn-opt').hidden=!v;}
-function saveDraft(){try{const st=readState();st.hcart={...hcart};st.isExample=isExample;st.shopTab=shopTab;
-  localStorage.setItem('hgp-state-v3',JSON.stringify(st));
-  if(document.activeElement!==$('code'))$('code').value=encode(st);}catch(e){}}
-let tmr;const edited=()=>{setStale(true);clearTimeout(tmr);tmr=setTimeout(saveDraft,300)};
-document.addEventListener('input',e=>{if(!e.target.closest('#app-hero'))return;if(e.target.closest('.panel')&&e.target.id!=='code'){if(e.target.closest('.res,#gear')&&isExample){isExample=false;showAcct();}edited();}});
+/* The planner runs automatically when you finish an edit: right away when you leave a field, tick a box,
+   pick an option or press Enter, or 800 ms after you stop typing. Not on every keystroke, which made typing lag.
+   While a run is pending, a small "Updating plan…" label shows next to the results title. */
+let pending=false;
+function setPending(v){pending=v;document.body.classList.toggle('is-updating',v);}
+let tmr;const schedule=ms=>{setPending(true);clearTimeout(tmr);tmr=setTimeout(()=>{tmr=null;render();},ms);};
+const edited=(e,now)=>{if(e&&e.target.closest('#gear'))livePreview();schedule(now?30:800);};
+/* editing your gear is cheap to show: redraw the cards from the form right away (no planning) */
+function livePreview(){const st=readState(),pieces=[];
+  TROOPS.forEach(t=>t.pieces.forEach((key,i)=>{const g=st.gear[t.k][i];
+    pieces.push({troop:t.k,key,name:key.split('_')[0],stat:key.slice(-1),s:{q:g[2],L:g[0],M:g[1]}});}));
+  renderPreview(st,{pieces});}
+document.addEventListener('input',e=>{if(!e.target.closest('#app-hero'))return;if(e.target.closest('.panel')&&e.target.id!=='code'){if(e.target.closest('.res,#gear')&&isExample){isExample=false;showAcct();}edited(e);}});
 document.addEventListener('change',e=>{if(!e.target.closest('#app-hero'))return;
   if(e.target.closest('#tp-mith .bought'))hcart.mith=0;
   if(e.target.closest('#tp-fh .bought'))hcart.fh=0;
   if(e.target.closest('#tp-hero .bought'))hcart.hero=0;
-  if(e.target.id!=='code')edited()});
-$('btn-opt').addEventListener('click',()=>render());
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&stale&&e.target.matches('#app-hero .panel input:not(#code)')){e.preventDefault();render();}});
+  if(e.target.id!=='code')edited(e,true)});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&pending&&e.target.matches('#app-hero .panel input:not(#code)')){e.preventDefault();schedule(30);}});
 $('app-hero').addEventListener('click',e=>{
   if(e.target.closest('.hcart-clear')){hcart={mith:0,fh:0,hero:0};render();return;}
   const b=e.target.closest('.selbtn[data-hk]');

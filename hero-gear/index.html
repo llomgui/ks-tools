@@ -50,7 +50,6 @@
     <p id="share-msg" class="msg" role="status"></p>
   </section>
 
-  <button id="btn-opt" type="button" class="primary optfab" hidden>Optimize</button>
   <div class="grid">
     <div class="col">
       <section class="panel" aria-labelledby="h-res">
@@ -118,8 +117,7 @@
 
     <div class="col">
       <section class="panel results" aria-labelledby="h-plan">
-        <h2 id="h-plan">Your gear after the plan</h2>
-        <p class="stale-msg" role="status">Inputs changed. Press <b>Optimize</b> (or Enter) to update the plan.</p>
+        <h2 id="h-plan">Your gear after the plan<span class="upd" role="status" aria-live="polite">Updating plan…</span></h2>
         <p class="lede" style="margin:-6px 0 12px;font-size:.88rem">Upgraded pieces glow. The steps below list one row per piece, highest priority first.</p>
         <div class="cartbar" id="h-cart" hidden></div>
         <div class="summary">

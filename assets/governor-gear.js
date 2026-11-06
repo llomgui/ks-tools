@@ -89,15 +89,16 @@ const lvName=p=>{const {L,s}=lvAt(p);return L<0?'Not owned':LV[L].name+(s?` · $
 
 const PIECES=[{n:'Cloak',t:'I'},{n:'Breeches',t:'I'},{n:'Hood',t:'C'},{n:'Charmstone',t:'C'},{n:'Ring',t:'A'},{n:'Staff',t:'A'}];
 const TROOP={I:'Infantry',C:'Cavalry',A:'Archer'};
-/* art: assets/gear/{slot}00{n}.png — slot 1 Hood(crown) 2 Charmstone 3 Cloak 4 Breeches 5 Ring 6 Staff;
-   n follows rarity: 2 Uncommon, 3 Rare, 4 Epic, 5 Epic T1, 6 Mythic, 7 Mythic T1+, 8 Legendary. Not owned: outline icon 0{slot}.png */
+/* art: assets/gear/{slot}00{n}.png — slot 1 Hood(crown) 2 Charmstone 3 Cloak 4 Breeches 5 Ring 6 Staff.
+   n changes with level (checked against the in-game cards): Uncommon 1, Rare 2, Epic/Epic T1 3, Mythic/Mythic T1 4,
+   Mythic T2-T3 7, Legendary/T1-T2 5, Legendary T3-T4 6, Legendary T5-T6 8. Not owned: outline icon 0{slot}.png */
 const IMG_SLOT={Hood:1,Charmstone:2,Cloak:3,Breeches:4,Ring:5,Staff:6};
 const tierOf=L=>{const m=LV[L].name.match(/ T(\d)/);return m?'T'+m[1]:'';};
 const starsOf=L=>+(LV[L].name.match(/(\d)★/)||[0,0])[1];
 function artSrc(n,L){
   if(L<0)return `../assets/gear/0${IMG_SLOT[n]}.png`;
-  const r=LV[L].rar,t=!!tierOf(L);
-  const k=r==='Legendary'?8:r==='Mythic'?(t?7:6):r==='Epic'?(t?5:4):r==='Rare'?3:2;
+  const r=LV[L].rar,t=+(tierOf(L).slice(1)||0);
+  const k=r==='Legendary'?(t>=5?8:t>=3?6:5):r==='Mythic'?(t>=2?7:4):r==='Epic'?3:r==='Rare'?2:1;
   return `../assets/gear/${IMG_SLOT[n]}00${k}.png`;}
 const gearImg=(n,L,id)=>`<img${id?` id="${id}"`:''} src="${artSrc(n,L)}" alt="" loading="lazy" decoding="async">`;
 const ORDER=[2,3,0,1,4,5];   /* game order: Cavalry, Infantry, Archer (saved data keeps its own order) */
@@ -241,14 +242,14 @@ function renderCards(st){
       const tip=`${TROOP[t]} ${pc.n} · ${lvName(p1)} · ${pct(STAT[p1])}%`;
       return `<div class="gcw ${up?'up':'same'}" tabindex="0" role="button" data-row="${i}" aria-label="Edit ${TROOP[t]} ${pc.n}">
         <div class="gc gt ${cls}" title="${tip}" role="img" aria-label="${tip}">
-          ${L>=0&&tierOf(L)?`<span class="gt-tag">${tierOf(L)}</span>`:''}${gearImg(pc.n,L)}
-          ${L>=0?`<span class="gt-lbl">${'★'.repeat(starsOf(L))}<i>${'★'.repeat(3-starsOf(L))}</i></span>`:''}</div>
+          ${L>=0&&(tierOf(L)||starsOf(L))?`<span class="gt-tag">${tierOf(L)}${starsOf(L)?`<span class="gt-stars">${'<b>★</b>'.repeat(starsOf(L))}</span>`:''}</span>`:''}${gearImg(pc.n,L)}</div>
         ${L>=0&&canStep(L)?`<span class="gt-bar" aria-hidden="true">${[0,1,2,3,4].map(k=>`<i${k<s?' class="on"':''}></i>`).join('')}</span>`:''}
         <span class="gn">${pc.n}</span>${L<0?'<span class="gw">Not owned</span>':''}
         ${up?`<span class="gw">was ${shortLv(p0,p1)}</span>`:''}</div>`;}).join('');
     const d=s1[t]-s0[t];
-    return `<div class="gv-grp"><div class="gv-th"><strong>${TROOP[t]}</strong><span>${pct(s1[t])}%${d>1e-9?` <b>+${pct(d)}</b>`:''}</span></div><div class="gv-row2">${cards}</div></div>`;
+    return `<div class="pv-grp"><div class="pv-head"><strong>${TROOP[t]}</strong><span>${pct(s1[t])}%${d>1e-9?` <b>+${pct(d)}</b>`:''}</span></div><div class="pv-row">${cards}</div></div>`;
   }).join('');
+  $('gv-cards').classList.toggle('has-up',!!$('gv-cards').querySelector('.gcw.up'));
   const rows=[
     ['Cavalry (Hood + Charmstone)',s0.C,s1.C,'%'],['Infantry (Cloak + Breeches)',s0.I,s1.I,'%'],['Archer (Ring + Staff)',s0.A,s1.A,'%'],
     ['3-piece Defense bonus',s0.b3,s1.b3,'%'],['6-piece Attack bonus',s0.b6,s1.b6,'%'],
@@ -265,7 +266,8 @@ function renderMaterials(st,base,packs){
   const used={satin:inv.satin-rem.satin,gt:inv.gt-rem.gt-5*trades,av:inv.av-rem.av+trades};
   const row=(n,o,cls='',sg='')=>`<tr class="${cls}"><td>${n}</td><td class="r">${sg}${fmt(o.satin)}</td><td class="r">${sg}${fmt(o.gt)}</td><td class="r">${sg}${fmt(o.av)}</td></tr>`;
   tb.innerHTML=row('You have',base)+(isZero(packs)?'':row('From packs you are trying',packs,'gv-cartrow','+'))
-    +(trades?`<tr><td>Material Exchange</td><td class="r">—</td><td class="r">−${fmt(5*trades)}</td><td class="r">+${fmt(trades)}</td></tr>`:'')
+    +(trades?`<tr><td>Material Exchange</td><td class="r">—</td><td class="r">−${fmt(5*trades)}</td><td class="r">+${fmt(trades)}</td></tr>`
+      :st.exch?`<tr class="gv-note"><td colspan="4">Material Exchange is on but not needed: Artisan's Vision is not what runs out first.</td></tr>`:'')
     +row('The plan uses',used)+row('<b>Left after the plan</b>',rem,'gv-tot');
 }
 
@@ -499,26 +501,27 @@ function render(){
   renderWeights(st);renderPlan(eff);renderCards(eff);renderMaterials(eff,st.inv,packs);renderWhy(eff);renderCart(parts);renderShop(st,parts);showAcct(st);
   if(document.activeElement!==$('gv-code'))$('gv-code').value=encodeGov(st);
   try{localStorage.setItem('hgp-gov-v1',JSON.stringify(st))}catch(e){}
-  setStale(false);
+  setPending(false);
 }
 
 /* ---------- events ---------- */
 const say=(t,c)=>{const m=$('gv-msg');m.textContent=t;m.className='msg '+c;};
-/* Optimizing can be slow with large inventories, so edits only mark the plan out of date;
-   the Optimize button (or Enter in a field) runs it. Edits are still saved as you type. Same behaviour as the hero gear page. */
-let stale=false;
-function setStale(v){stale=v;document.body.classList.toggle('is-stale',v);$('gv-opt').hidden=!v;}
-function saveDraft(){try{const st=readState();localStorage.setItem('hgp-gov-v1',JSON.stringify(st));
-  if(document.activeElement!==$('gv-code'))$('gv-code').value=encodeGov(st);}catch(e){}}
-let tmr;const edited=()=>{setStale(true);clearTimeout(tmr);tmr=setTimeout(saveDraft,300);};
+/* The planner runs automatically when you finish an edit: right away when you leave a field, tick a box,
+   pick an option or press Enter, or 800 ms after you stop typing. Not on every keystroke, which made typing lag.
+   While a run is pending, a small "Updating plan…" label shows next to the results title. */
+let pending=false;
+function setPending(v){pending=v;document.body.classList.toggle('is-updating',v);}
+let tmr;const schedule=ms=>{setPending(true);clearTimeout(tmr);tmr=setTimeout(()=>{tmr=null;render();},ms);};
+const edited=(e,now)=>{if(e&&e.target.closest('#gv-pieces'))liveCards();schedule(now?30:800);};
+/* editing your gear is cheap to show: redraw the cards from the form right away (no planning) */
+function liveCards(){const keep=plan;plan=null;try{renderCards(readState());}finally{plan=keep;}}
 const app=$('app-gov');
-app.addEventListener('input',e=>{if(e.target.closest('.gv-all')||e.target.id==='gv-code')return;if(e.target.closest('.gv-inv,#gv-pieces')&&isExample)isExample=false;edited();});
+app.addEventListener('input',e=>{if(e.target.closest('.gv-all')||e.target.id==='gv-code')return;if(e.target.closest('.gv-inv,#gv-pieces')&&isExample)isExample=false;edited(e);});
 app.addEventListener('change',e=>{if(e.target.closest('.gv-all')||e.target.id==='gv-code')return;
   if(e.target.closest('#gvtp-master .bought'))cart.master=[null,null,null,null,null];
   if(e.target.closest('#gvtp-tool .bought'))cart.tool=0;
-  if(e.target.closest('#gvtp-enh .bought'))cart.enh=0;if(e.target.closest('.gv-inv,#gv-pieces')&&isExample)isExample=false;edited();});
-$('gv-opt').addEventListener('click',()=>render());
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&stale&&e.target.matches('#app-gov .panel input:not(#gv-code)')){e.preventDefault();render();}});
+  if(e.target.closest('#gvtp-enh .bought'))cart.enh=0;if(e.target.closest('.gv-inv,#gv-pieces')&&isExample)isExample=false;edited(e,true);});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&pending&&e.target.matches('#app-gov .panel input:not(#gv-code)')){e.preventDefault();schedule(30);}});
 $('gv-more').addEventListener('click',()=>{showAll=!showAll;render();});
 app.addEventListener('click',e=>{
   if(e.target.closest('.cart-clear')){cart=defCart();render();return;}

@@ -50,7 +50,6 @@
     <p id="gv-msg" class="msg" role="status"></p>
   </section>
 
-  <button id="gv-opt" type="button" class="primary optfab" hidden>Optimize</button>
   <div class="grid">
     <div class="col">
       <section class="panel" aria-labelledby="gv-h-inv">
@@ -96,13 +95,13 @@
         </div>
         <div class="forms" style="margin-top:12px">
           <fieldset><legend class="label">Attack rally</legend>
-            <div class="fr"><label class="field"><span class="label">Cav %</span><input id="gv-fa-C" type="number" min="0" max="100"></label>
-            <label class="field"><span class="label">Inf %</span><input id="gv-fa-I" type="number" min="0" max="100"></label>
+            <div class="fr"><label class="field"><span class="label">Inf %</span><input id="gv-fa-I" type="number" min="0" max="100"></label>
+            <label class="field"><span class="label">Cav %</span><input id="gv-fa-C" type="number" min="0" max="100"></label>
             <label class="field"><span class="label">Arch %</span><input id="gv-fa-A" type="number" min="0" max="100"></label></div>
             <small class="fs" id="gv-fs-att"></small></fieldset>
           <fieldset><legend class="label">Defense</legend>
-            <div class="fr"><label class="field"><span class="label">Cav %</span><input id="gv-fd-C" type="number" min="0" max="100"></label>
-            <label class="field"><span class="label">Inf %</span><input id="gv-fd-I" type="number" min="0" max="100"></label>
+            <div class="fr"><label class="field"><span class="label">Inf %</span><input id="gv-fd-I" type="number" min="0" max="100"></label>
+            <label class="field"><span class="label">Cav %</span><input id="gv-fd-C" type="number" min="0" max="100"></label>
             <label class="field"><span class="label">Arch %</span><input id="gv-fd-A" type="number" min="0" max="100"></label></div>
             <small class="fs" id="gv-fs-def"></small></fieldset>
         </div>
@@ -114,8 +113,7 @@
 
     <div class="col">
       <section class="panel results" aria-labelledby="gv-h-res">
-        <h2 id="gv-h-res">Best use of your materials</h2>
-        <p class="stale-msg" role="status">Inputs changed. Press <b>Optimize</b> (or Enter) to update the plan.</p>
+        <h2 id="gv-h-res">Best use of your materials<span class="upd" role="status" aria-live="polite">Updating plan…</span></h2>
         <p class="lede" style="margin:-6px 0 12px;font-size:.88rem">Starting from your levels, this is where your materials do the most for the troops you care about. Upgraded pieces glow.</p>
         <div class="cartbar" id="gv-cart" hidden></div>
         <div id="gv-opt-sum" class="notes"></div>
