@@ -379,7 +379,7 @@ const BADGE={
   A:'<g fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 6.5c5.6-.6 10 3.8 10.5 10.5"/><path d="M7 6.5l10.5 10.5"/><path d="M8.5 15.5l7-7M15.5 8.5h-2.6M15.5 8.5v2.6"/></g>'};
 Object.keys(BADGE).forEach(k=>BADGE[k]=`<svg class="hg-tb" viewBox="0 0 24 26" aria-hidden="true">${BADGE_SHAPE}${BADGE[k]}</svg>`);
 /* pill colour follows enhancement: 0-19 grey, 20-39 green, 40-59 blue, 60-79 purple, 80-99 gold, 100 red */
-const enhTier=s=>Math.min(5,Math.floor((s.q==='R'?s.L-100:s.L)/20));
+const enhTier=s=>Math.min(5,Math.floor((s.L-100)/20));   /* Red only: Mythic has no +N label */
 const enh=s=>'+'+(s.q==='R'?s.L-100:s.L);
 const cumXP=L=>{let c=0;for(let x=1;x<=L;x++)c+=XP[x];return c;};
 function renderPreview(st,r){
@@ -396,7 +396,7 @@ function renderPreview(st,r){
       cards.push(`<div class="gcw ${up?'up':'same'}" tabindex="0" role="button" data-row="${t.k}${i}" aria-label="Edit ${t.name} ${p.name}">
         <div class="gc hg q${to.q}" title="${tip}" role="img" aria-label="${tip}">
           ${BADGE[t.k]}<img src="${gearImg(t.k,i)}" alt="" loading="lazy" decoding="async">
-          <span class="hg-pill e${enhTier(to)}">${enh(to)}</span><span class="hg-lv">Lv. ${to.M}</span>
+          ${to.q==='R'?`<span class="hg-pill e${enhTier(to)}">${enh(to)}</span>`:''}<span class="hg-lv">Lv. ${to.M}</span>
         </div>
         <span class="gn">${p.name}</span>
         ${up?`<span class="gw">was ${enh(from)} · Lv ${from.M}</span>`:'<span class="gw">&nbsp;</span>'}</div>`);
