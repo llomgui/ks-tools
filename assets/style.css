@@ -165,6 +165,8 @@ button.danger{border-color:var(--red);color:var(--red)}
 @media (prefers-reduced-motion:reduce){.gv-piece.flash{animation:none;background:var(--ember-soft)}}
 .gv-pn{display:flex;gap:8px;align-items:center;min-width:0;align-self:center}
 .gv-pn svg{width:26px;height:26px;flex:none;stroke:var(--ember);fill:var(--ember-soft);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.gv-pn img{width:34px;height:34px;flex:none;object-fit:contain}
+.gc.r0 img{filter:grayscale(1) brightness(.75);opacity:.6}
 .gv-pn small{display:block;color:var(--muted);font-size:.75rem}
 .gv-lv{display:flex;flex-direction:column;gap:3px;min-width:0}
 .sel2{display:flex;gap:4px;min-width:0}

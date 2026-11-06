@@ -89,13 +89,9 @@ const lvName=p=>{const {L,s}=lvAt(p);return L<0?'Not owned':LV[L].name+(s?` · $
 
 const PIECES=[{n:'Cloak',t:'I'},{n:'Breeches',t:'I'},{n:'Hood',t:'C'},{n:'Charmstone',t:'C'},{n:'Ring',t:'A'},{n:'Staff',t:'A'}];
 const TROOP={I:'Infantry',C:'Cavalry',A:'Archer'};
-const ICON={
-  Cloak:'<path d="M9 3h6l1.2 3L19 20l-4-2-3 3-3-3-4 2L7.8 6z"/><path d="M9 3c0 2 1.4 3 3 3s3-1 3-3"/>',
-  Breeches:'<path d="M6 3h12l1 18h-5l-2-11-2 11H5z"/><path d="M6 6.5h12"/>',
-  Hood:'<path d="M12 3c-4.5 0-7 4-7 9v8h4v-6a3 3 0 0 1 6 0v6h4v-8c0-5-2.5-9-7-9z"/>',
-  Charmstone:'<path d="M12 3l6 6-6 12-6-12z"/><path d="M6 9h12M12 3v18"/>',
-  Ring:'<circle cx="12" cy="15" r="6"/><path d="M9.5 6.5 12 3l2.5 3.5L12 9z"/>',
-  Staff:'<path d="M6 21 15.5 8"/><circle cx="17.5" cy="6" r="3"/><path d="M14.5 3.5 13 2M21.5 9.5 23 11"/>'};
+/* art: assets/gear/{slot}005.png — slot 1 Hood(crown) 2 Charmstone 3 Cloak 4 Breeches 5 Ring 6 Staff; set 5 art, card background shows rarity */
+const IMG_SLOT={Hood:1,Charmstone:2,Cloak:3,Breeches:4,Ring:5,Staff:6};
+const gearImg=n=>`<img src="../assets/gear/${IMG_SLOT[n]}005.png" alt="" loading="lazy" decoding="async">`;
 const ORDER=[2,3,0,1,4,5];   /* game order: Cavalry, Infantry, Archer (saved data keeps its own order) */
 const TORDER=['C','I','A'];
 const RCLS={Uncommon:'rU',Rare:'rR',Epic:'rE',Mythic:'rM',Legendary:'rL'};
@@ -162,7 +158,7 @@ function optimize(st){
 const lvOptions='<option value="-1">Not owned</option>'+LV.map((l,i)=>`<option value="${i}">${l.name}</option>`).join('');
 const stOptions=[0,1,2,3,4].map(s=>`<option value="${s}">${s}/5</option>`).join('');
 $('gv-pieces').innerHTML=ORDER.map(i=>[PIECES[i],i]).map(([pc,i])=>`<div class="gv-piece" id="gv-row-${i}">
-  <div class="gv-pn"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[pc.n]}</svg><span><b>${pc.n}</b><small>${TROOP[pc.t]}</small></span></div>
+  <div class="gv-pn">${gearImg(pc.n)}<span><b>${pc.n}</b><small>${TROOP[pc.t]}</small></span></div>
   <div class="sel2">
     <select id="gv-cl-${i}" aria-label="${pc.n} level">${lvOptions}</select>
     <select id="gv-cs-${i}" class="st" aria-label="${pc.n} purchases toward next level">${stOptions}</select></div>
@@ -236,7 +232,7 @@ function renderCards(st){
       const tip=`${TROOP[t]} ${pc.n} · ${lvName(p1)} · ${pct(STAT[p1])}%`;
       return `<div class="gcw ${up?'up':'same'}" tabindex="0" role="button" data-row="${i}" aria-label="Edit ${TROOP[t]} ${pc.n}">
         <div class="gc ${cls}" title="${tip}"><span class="ge">${L<0?'':LV[L].name.split(' ').slice(1).join(' ')}</span>
-          <svg viewBox="0 0 24 24" aria-hidden="true">${ICON[pc.n]}</svg>${s?`<span class="gf">${s}/5</span>`:''}</div>
+          ${gearImg(pc.n)}${s?`<span class="gf">${s}/5</span>`:''}</div>
         <span class="gn">${pc.n}</span>${L<0?'<span class="gw">Not owned</span>':''}
         ${up?`<span class="gw">was ${shortLv(p0,p1)}</span>`:''}</div>`;}).join('');
     const d=s1[t]-s0[t];
