@@ -6,6 +6,7 @@ Free calculators for Kingshot players.
 |---|---|
 | `/` | Home page listing the tools |
 | `/hero-gear/` | Hero gear upgrade planner: best upgrade order, formations, event points, shop pack value |
+| `/reforge/` | Hero gear reforge planner: list every piece you own, keep the best per troop and slot for your 3 main heroes, reforge the rest and spend the refunds |
 | `/governor-gear/` | Governor gear planner: Satin / Gilded Threads / Artisan's Vision, set bonuses, Master's Collection chest picks |
 
 ## Structure
@@ -13,9 +14,12 @@ Free calculators for Kingshot players.
 ```
 index.html              home page
 hero-gear/index.html    hero gear planner
+reforge/index.html      hero gear reforge planner
 governor-gear/index.html
 assets/style.css        shared styles (light and dark theme)
+assets/hero-gear-model.js  hero gear data and optimizer (shared by hero-gear and reforge)
 assets/hero-gear.js
+assets/reforge.js
 assets/governor-gear.js
 404.html
 .nojekyll               serve files as-is on GitHub Pages

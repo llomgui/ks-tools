@@ -272,7 +272,7 @@ td.pick .unl{color:var(--ember)}
 .hint{font-size:.72rem;color:var(--muted);font-family:var(--mono);min-height:1em}
 @media (max-width:520px){.res{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .field{display:flex;flex-direction:column;gap:4px;min-width:0}
-input[type=number],select,textarea{font:inherit;color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:7px 9px;width:100%;min-width:0}
+input[type=number],input[type=text],select,textarea{font:inherit;color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:7px 9px;width:100%;min-width:0}
 input[type=number]{font-family:var(--mono);font-variant-numeric:tabular-nums}
 textarea{font-family:var(--mono);font-size:.78rem;resize:vertical;min-height:64px;word-break:break-all}
 input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--ember);outline-offset:1px}
@@ -334,3 +334,46 @@ body.is-updating .upd{display:inline-block;animation:upd 1s ease-in-out infinite
 @keyframes upd{from{opacity:.55}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){body.is-updating .upd{animation:none}}
 #gv-mat tr.gv-note td{color:var(--muted);font-size:.8rem;font-style:italic}
+
+/* ---------- Reforge page ---------- */
+.rf-inv{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:14px 10px;padding:8px 6px 0}
+@media (max-width:420px){.rf-inv{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 6px}}
+.rf-inv .gcw .gw{font-family:var(--body);font-size:.68rem}
+.rf-inv .gcw.rf .gw{color:var(--red);font-weight:600}
+.rf-inv .gcw.mh .gw{color:var(--good);font-weight:600}
+.rf-inv .gcw.sel .gc.gt{box-shadow:0 0 0 3px var(--panel),0 0 0 5px var(--ember)}
+.rf-add{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:min(84%,96px);aspect-ratio:1;justify-self:center;
+  border:2px dashed var(--line);border-radius:16%;background:var(--sunk);color:var(--muted);font:600 .72rem var(--body);cursor:pointer;padding:0}
+.rf-add span{font-size:1.6rem;line-height:1}
+.rf-add:hover{color:var(--ember);border-color:var(--ember)}
+.rf-add:focus-visible{outline:2px solid var(--ember);outline-offset:3px}
+.rf-edit{margin-top:16px;padding:14px;border:1px solid var(--line);border-radius:8px;background:var(--sunk)}
+.rf-edit-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.rf-edit-head strong{font-family:var(--display);letter-spacing:.04em}
+.rf-edit-head .btns button{padding:5px 12px;font-size:.82rem}
+.rf-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:460px){.rf-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.rf-fields input,.rf-fields select{width:100%;min-width:0}
+.rf-parts{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.rf-part{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border:1px solid var(--line);border-radius:99px;background:var(--sunk);color:var(--muted);font:500 .78rem var(--body);cursor:pointer;white-space:nowrap}
+.rf-part.on{border-color:var(--good);color:var(--ink)}
+.rf-part b{font-family:var(--mono);font-weight:500;color:var(--good)}
+.rf-part:not(.on) b{color:var(--muted);text-decoration:line-through}
+.rf-part small{color:var(--muted);font-size:.72rem}
+.rf-part input{accent-color:var(--good);margin:0}
+@media (max-width:480px){.apptabs a{padding:8px 9px;font-size:.86rem;letter-spacing:.02em}}
+.rf-edit input[type=text],.rf-edit input[type=number],.rf-edit select{background:var(--panel)}
+.kvk-note{margin:-8px 0 20px;padding:10px 14px;border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:8px;background:var(--panel);font-size:.9rem;max-width:80ch}
+.kvk-note b{color:var(--warn)}
+.rf-seg{display:inline-flex;gap:2px;background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:3px;max-width:100%}
+.rf-seg label{cursor:pointer}
+.rf-seg input{position:absolute;opacity:0;pointer-events:none}
+.rf-seg span{display:block;padding:7px 16px;border-radius:7px;font-weight:600;color:var(--muted)}
+.rf-seg input:checked+span{background:var(--panel);color:var(--ember);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.rf-seg input:focus-visible+span{outline:2px solid var(--ember);outline-offset:1px}
+.rf-for{font-family:var(--body);font-size:.75rem;letter-spacing:.02em;color:var(--muted);font-weight:500;margin-left:6px}
+/* Mythic +N: plain white number like the game (the coloured pill is Red only) */
+.hg-plain{position:absolute;top:1%;right:5%;font:900 15cqw/1.2 system-ui,sans-serif;color:#fff;
+  -webkit-text-stroke:2.5px rgba(70,40,0,.7);paint-order:stroke fill;text-shadow:0 1px 2px rgba(0,0,0,.35);font-variant-numeric:tabular-nums}
+.rf-eq{display:block;margin-top:3px;color:var(--ink)}
+.rf-eq b{display:inline-block;min-width:5.5em}

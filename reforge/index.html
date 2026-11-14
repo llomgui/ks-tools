@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kingshot Hero Gear Reforge Planner | KS Tools</title>
+<meta name="description" content="Free Kingshot reforge calculator: enter every hero gear piece you own, see what reforging the pieces outside your main three heroes gives back, and the best way to spend it.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Kingshot Hero Gear Reforge Planner | KS Tools">
+<meta property="og:description" content="Free Kingshot reforge calculator: enter every hero gear piece you own, see what reforging the pieces outside your main three heroes gives back, and the best way to spend it.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23b8430f'/%3E%3Cpath d='M9 22l9-12 2 2-9 12zM18 8l6 6' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <nav class="sitenav" aria-label="Site">
+    <a class="brand" href="../">KS <span>Tools</span></a>
+    <div class="apptabs"><a href="../hero-gear/">Hero Gear</a><a href="../reforge/" aria-current="page">Reforge</a><a href="../governor-gear/">Governor Gear</a></div>
+  </nav>
+  <div id="app-reforge">
+  <header>
+    <div>
+      <h1>Hero Gear Reforge Planner</h1>
+      <p class="lede">Upgraded gear on the wrong heroes? List every hero gear piece you own. The planner keeps the best piece of each troop and slot for your three main heroes (Infantry, Cavalry, Archer), reforges the rest, and shows the best way to spend what comes back.</p>
+    </div>
+  </header>
+  <p class="kvk-note" role="note"><b>Only during KvK preparation week.</b> Please upgrade and reforge only during the KvK preparation phase week, so everything you spend also scores KvK points.</p>
+
+  <section class="panel start" aria-labelledby="h-start">
+    <h2 id="h-start">Start here</h2>
+    <ol class="howto">
+      <li><b>Open Backpack → Gear in the game</b> and add every piece that has a +N badge or a Lv. label. Pieces with neither have nothing invested, so you can skip them.</li>
+      <li><b>Add what is in your backpack:</b> Forgehammers, Mythic Gear, Mithril, XP and Lucky Hero Gear Chests.</li>
+      <li><b>Choose what you plan for:</b> attack, garrison or a mix. Then follow the steps on the right.</li>
+    </ol>
+    <label class="field"><span class="label">Your reforge code · updates as you edit</span>
+      <textarea id="code" spellcheck="false" placeholder="Paste a KSR1: code here, then press Import code"></textarea>
+    </label>
+    <div class="btns" style="margin-top:10px">
+      <button id="btn-import" type="button" class="primary">Import code</button>
+      <button id="btn-export" type="button">Copy my code</button>
+      <button id="btn-link" type="button">Copy link</button>
+      <button id="btn-blank" type="button">Start from blank</button>
+      <button id="btn-example" type="button">Load example</button>
+    </div>
+    <p id="msg" class="msg" role="status"></p>
+  </section>
+
+  <div class="grid">
+    <div class="col">
+      <section class="panel" aria-labelledby="h-inv">
+        <h2 id="h-inv"><span class="stepn">1</span>All your hero gear</h2>
+        <p class="lede" style="margin:-6px 0 12px;font-size:.88rem">Tap a piece to edit it. The +N badge and Lv. label work like the game: Red +41 is enhancement level 141, Lv. is mastery.</p>
+        <div class="rf-inv" id="inv"></div>
+        <div class="rf-edit" id="editor" hidden>
+          <div class="rf-edit-head"><strong id="ed-title">Edit piece</strong>
+            <span class="btns"><button type="button" id="ed-dup">Duplicate</button><button type="button" id="ed-del">Delete</button></span></div>
+          <div class="rf-fields">
+            <label class="field"><span class="label">Troop</span>
+              <select id="ed-troop"><option value="I">Infantry</option><option value="C">Cavalry</option><option value="A">Archer</option></select></label>
+            <label class="field"><span class="label">Slot</span>
+              <select id="ed-slot"><option value="0">Helm</option><option value="1">Gloves</option><option value="2">Chest</option><option value="3">Boots</option></select></label>
+            <label class="field"><span class="label">Quality</span>
+              <select id="ed-q"><option value="M">Mythic</option><option value="R">Red</option></select></label>
+            <label class="field"><span class="label">Enhancement +N</span><input id="ed-enh" type="number" min="0" max="100" step="1"></label>
+            <label class="field"><span class="label">Mastery (Lv.)</span><input id="ed-m" type="number" min="0" max="20" step="1"></label>
+          </div>
+          <p class="hint" id="ed-hint"></p>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-res">
+        <h2 id="h-res"><span class="stepn">2</span>Your backpack</h2>
+        <p class="lede" style="margin:-6px 0 12px;font-size:.88rem">What you have left to spend. Even with nothing to reforge, the page then plans your upgrades.</p>
+        <div class="res">
+          <label class="field"><span class="label">Forgehammers</span><input id="r-fh" type="number" min="0" step="1"></label>
+          <label class="field"><span class="label">Mythic Gear</span><input id="r-myth" type="number" min="0" step="1"></label>
+          <label class="field"><span class="label">Mithril</span><input id="r-mith" type="number" min="0" step="1"></label>
+          <label class="field"><span class="label">Enhancement XP</span><input id="r-xp" type="number" min="0" step="10"></label>
+          <label class="field"><span class="label">Lucky Hero Gear Chests</span><input id="r-ch" type="number" min="0" step="1"><span class="hint" id="ch-hint"></span></label>
+        </div>
+        <div class="opts">
+          <label class="field"><span class="label">Build profile</span>
+            <select id="profile">
+              <option value="growth">Early Game Growth (PvE)</option>
+              <option value="combat">Early Game Combat (PvP 50/20/30)</option>
+              <option value="gen4">Future-proofed (gen 4+)</option>
+              <option value="flat">Unweighted</option>
+            </select></label>
+          <label class="field"><span class="label">Game mode</span>
+            <select id="mode">
+              <option value="exp">Expedition (troops, rallies)</option>
+              <option value="conq">Conquest (heroes)</option>
+            </select></label>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-form">
+        <h2 id="h-form"><span class="stepn">3</span>Plan for</h2>
+        <div class="rf-seg" role="radiogroup" aria-label="Plan for">
+          <label><input type="radio" name="planfor" value="att"><span>Attack</span></label>
+          <label><input type="radio" name="planfor" value="def"><span>Garrison</span></label>
+          <label><input type="radio" name="planfor" value="mix"><span>Mix</span></label>
+        </div>
+        <p class="lede" style="margin:10px 0 12px;font-size:.88rem">Troop shares change what your gear is worth, the same way as on the Hero Gear planner. Set the formation you use for each.</p>
+        <div class="forms">
+          <fieldset><legend class="label">Attack rally</legend>
+            <div class="fr"><label class="field"><span class="label">Inf %</span><input id="fa-i" type="number" min="0" max="100"></label>
+            <label class="field"><span class="label">Cav %</span><input id="fa-c" type="number" min="0" max="100"></label>
+            <label class="field"><span class="label">Arch %</span><input id="fa-a" type="number" min="0" max="100"></label></div>
+            <small class="fs" id="fs-att"></small></fieldset>
+          <fieldset><legend class="label">Garrison</legend>
+            <div class="fr"><label class="field"><span class="label">Inf %</span><input id="fd-i" type="number" min="0" max="100"></label>
+            <label class="field"><span class="label">Cav %</span><input id="fd-c" type="number" min="0" max="100"></label>
+            <label class="field"><span class="label">Arch %</span><input id="fd-a" type="number" min="0" max="100"></label></div>
+            <small class="fs" id="fs-def"></small></fieldset>
+        </div>
+        <label class="field mixf" id="mix-field"><span class="label">Mix: how your fights split</span>
+          <input id="f-mix" type="range" min="0" max="100" step="5"><span class="mixo" id="mix-out"></span></label>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel results" aria-labelledby="h-plan">
+        <h2 id="h-plan">Your reforge plan <span class="rf-for" id="plan-for"></span></h2>
+        <div class="summary">
+          <div class="stat"><div class="label">XP back</div><div class="v" id="s-xp">—</div></div>
+          <div class="stat"><div class="label">Forgehammers back</div><div class="v" id="s-fh">—</div></div>
+          <div class="stat"><div class="label">Extra gain from reforging</div><div class="v up" id="s-gain">—</div></div>
+        </div>
+        <h3 class="sub">Steps</h3>
+        <ol class="plan" id="todo"></ol>
+        <h3 class="sub">Main heroes after the plan</h3>
+        <p class="foot" style="margin-top:0">Pieces that change glow. The line under each piece shows what it was before.</p>
+        <div class="preview" id="preview"></div>
+        <h3 class="sub">Upgrade order with the refunds</h3>
+        <ol class="plan" id="plan"></ol>
+        <div class="notes" id="notes"></div>
+        <details>
+          <summary>How refunds are counted</summary>
+          <p>XP and mastery are reforged separately, so you can do one, the other or both. Reforging the XP returns 100% of the Enhancement XP spent on the piece. Reforging the mastery returns 50% of its Forgehammers; the other half is lost. Untick XP or Hammers on a piece in the steps to keep that part. The piece must be unequipped first. You get one free reforge a day, and 100 gems skips the 24-hour wait.</p>
+          <p>Mythic Gear and Mithril spent on mastery above 10, ascending and imbuements are not counted as refunded. Check the refund preview in the game before you confirm; if it shows more, add it to step 2.</p>
+          <p>A piece can also move to another hero of the same troop type and keep all its levels, for free. So the planner keeps the strongest piece you own for each troop and slot on your main hero of that troop, then reforges the others. The upgrade order uses the same optimizer and cost tables as the Hero Gear planner.</p>
+        </details>
+      </section>
+    </div>
+  </div>
+
+  <footer>Game data from Kingshot Optimizer's reference tables (<a href="https://kingshotoptimizer.com/hero-gear/references/xp-costs/" target="_blank" rel="noopener">XP</a>, <a href="https://kingshotoptimizer.com/hero-gear/references/forgehammer-costs/" target="_blank" rel="noopener">Forgehammers</a>). Refund rules from community guides (<a href="https://kingshotmastery.com/guides/kingshot-reforge-guide" target="_blank" rel="noopener">Kingshot Mastery</a>). Independent fan tool, not affiliated with Kingshot.</footer>
+  </div>
+  <footer class="sitefoot"><span>KS Tools · free calculators for Kingshot players</span><span>Independent fan project, not affiliated with Kingshot or Century Games.</span></footer>
+</div>
+<script src="../assets/hero-gear-model.js"></script>
+<script src="../assets/reforge.js"></script>
+</body>
+</html>
