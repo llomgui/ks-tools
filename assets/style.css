@@ -377,3 +377,19 @@ body.is-updating .upd{display:inline-block;animation:upd 1s ease-in-out infinite
   -webkit-text-stroke:2.5px rgba(70,40,0,.7);paint-order:stroke fill;text-shadow:0 1px 2px rgba(0,0,0,.35);font-variant-numeric:tabular-nums}
 .rf-eq{display:block;margin-top:3px;color:var(--ink)}
 .rf-eq b{display:inline-block;min-width:5.5em}
+
+/* ---------- Truegold page ---------- */
+.tg-bhead,.tg-brow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:center}
+.tg-bhead{margin-bottom:4px}
+.tg-brow{padding:6px 0;border-top:1px solid var(--line)}
+.tg-bn{font-weight:600;min-width:0}
+.tg-bn small{display:block;font-weight:500;font-size:.72rem;color:var(--warn);line-height:1.3}
+.tg-facts{margin:0 0 10px;padding-left:1.2em;font-size:.88rem;display:flex;flex-direction:column;gap:3px}
+.tg-tiers td,.tg-tiers th{padding:4px 8px}
+#plans tbody tr{cursor:pointer}
+#plans tbody tr:hover td{background:var(--sunk)}
+#plans tbody tr:focus-visible{outline:2px solid var(--ember);outline-offset:-2px}
+.tg-need{font-family:var(--body);font-size:.78rem;color:var(--muted);font-weight:500;letter-spacing:0;text-transform:none}
+.tg-sub{font-size:.72rem;color:var(--muted);margin-top:2px;line-height:1.3}
+.chip{display:inline-block;font-size:.68rem;padding:0 6px;border-radius:99px;background:var(--sunk);color:var(--muted);font-weight:600;vertical-align:1px}
+@media (max-width:480px){.apptabs{flex-wrap:wrap;justify-content:center}.apptabs a{padding:7px 10px}}
