@@ -86,7 +86,7 @@ function analyse(){
 
 /* ---------- inventory ---------- */
 /* like the game: Red shows +N on a coloured pill, Mythic shows a plain white +N (no pill), +0 shows nothing */
-const enhLabel=p=>p.q==='R'?`<span class="hg-pill e${enhTier(p)}">${enh(p)}</span>`:p.L>0?`<span class="hg-plain">${enh(p)}</span>`:'';
+const enhLabel=window.HG.enhLabel;
 function tile(p,status,cls){
   const lvl=p.M?`<span class="gt-lbl">Lv.${p.M}</span>`:'';
   const pill=enhLabel(p);

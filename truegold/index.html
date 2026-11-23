@@ -32,9 +32,9 @@
   <section class="panel start" aria-labelledby="h-start">
     <h2 id="h-start">Start here</h2>
     <ol class="howto">
-      <li><b>Set each building's level now,</b> and the level you want. Leave the goal as it is for buildings you don't plan to upgrade: anything your goal needs is added for you.</li>
-      <li><b>Add your Truegold, Tempered Truegold and daily income,</b> plus your construction speed.</li>
-      <li><b>Pick a Super Refinement plan</b> for Tempered Truegold, then follow the order on the right.</li>
+      <li><b>Pick your goal,</b> for example 2 troop buildings to TG 8, and set your buildings' current levels.</li>
+      <li><b>Add your Truegold, speedups and construction speed.</b></li>
+      <li><b>Set the dates:</b> when Super Refinement opens and, if you have one, the day you want to be ready. Then follow the plan.</li>
     </ol>
     <label class="field"><span class="label">Your Truegold code · updates as you edit</span>
       <textarea id="code" spellcheck="false" placeholder="Paste a KST1: code here, then press Import code"></textarea>
@@ -51,66 +51,98 @@
   <div class="grid">
     <div class="col">
       <section class="panel" aria-labelledby="h-bld">
-        <h2 id="h-bld"><span class="stepn">1</span>Your buildings</h2>
-        <p class="lede" style="margin:-6px 0 12px;font-size:.88rem">Each Truegold level has 5 steps, shown like the game: TG 1, TG 1.1 … TG 1.4, then TG 2.</p>
+        <h2 id="h-bld"><span class="stepn">1</span>Your goal</h2>
+        <div class="tg-qhead"><span class="lede" style="margin:0;font-size:.88rem">Pick what to upgrade. Every building the goal needs is added for you.</span>
+          <label class="tg-qlvl">Up to <select id="q-lvl" aria-label="Goal level"></select></label></div>
+        <div class="tg-goals" id="q-cards"></div>
+        <p class="foot" id="q-custom" style="margin:8px 0 0"></p>
+        <h3 class="sub" style="margin-top:18px">Your buildings</h3>
+        <p class="lede" style="margin:-4px 0 10px;font-size:.88rem">Set the level each building is at now. The goal column follows the card you pick; change a goal to make your own. Truegold levels have 5 steps, like the game: TG 1, TG 1.1 … TG 1.4, then TG 2.</p>
         <div class="tg-bhead"><span class="label">Building</span><span class="label">Now</span><span class="label">Goal</span></div>
         <div id="blds"></div>
-        <div class="btns" style="margin-top:12px">
-          <button type="button" id="goal-tc">Goal: next Town Center level</button>
-          <button type="button" id="goal-all">Goal: all at Town Center's goal</button>
-          <button type="button" id="goal-reset">Goal: no upgrades</button>
+        <div class="tg-setall">
+          <span class="label">Set every building's current level</span>
+          <select id="all-cur" aria-label="Set every building's current level"></select>
+          <button type="button" id="all-cur-go">Set all now</button>
+          <button type="button" id="goal-clear" style="margin-left:auto">Clear goal</button>
         </div>
       </section>
 
       <section class="panel" aria-labelledby="h-res">
-        <h2 id="h-res"><span class="stepn">2</span>Your Truegold</h2>
+        <h2 id="h-res"><span class="stepn">2</span>Your Truegold and speed</h2>
         <div class="res">
           <label class="field"><span class="label">Truegold</span><input id="r-tg" type="number" min="0" step="1"></label>
           <label class="field"><span class="label">Tempered Truegold</span><input id="r-ttg" type="number" min="0" step="1"></label>
           <label class="field"><span class="label">Truegold per day</span><input id="r-inc" type="number" min="0" step="0.5"><span class="hint">Crucible ≈ 10.5 · add missions, events</span></label>
-          <label class="field"><span class="label">Construction speed %</span><input id="r-speed" type="number" min="0" step="1"></label>
+          <label class="field"><span class="label">Construction speedups</span><input id="r-spd" type="number" min="0" step="1"><span class="hint">In days. Covering the build time makes every upgrade instant</span></label>
           <label class="field"><span class="label">Builders</span><input id="r-bld" type="number" min="1" max="4" step="1"></label>
         </div>
+        <h3 class="sub" style="margin-top:18px">Construction speed</h3>
+        <div class="res tg-speed">
+          <label class="field"><span class="label">Construction speed %</span><input id="r-speed" type="number" min="0" step="1"><span class="hint">From your stats: research, alliance, gear, heroes</span></label>
+          <label class="field"><span class="label">Pet: Gray Wolf</span><select id="b-wolf">
+            <option value="0">Not used</option><option value="5">Rank 1 · 5%</option><option value="7">Rank 2 · 7%</option><option value="9">Rank 3 · 9%</option><option value="12">Rank 4 · 12%</option><option value="15">Rank 5 · 15%</option></select>
+            <span class="hint">Construction Aide, once a day · lasts 5 min</span></label>
+          <label class="field"><span class="label">Minister</span><select id="b-min">
+            <option value="0">No position</option><option value="10">Chief Minister · 10%</option><option value="15">Chief Min. + High King · 15%</option></select>
+            <span class="hint">Lasts 30 min</span></label>
+          <label class="field"><span class="label">Kingdom skill</span><select id="b-gw">
+            <option value="0">Not active</option><option value="10">Ground Works · 10%</option></select></label>
+          <label class="field"><span class="label">Decree</span><select id="b-dt">
+            <option value="0">Not active</option><option value="1">Double Time · −20% time</option></select>
+            <span class="hint">Lasts 5 min</span></label>
+          <label class="field"><span class="label">KvK bonus</span><select id="b-kvk">
+            <option value="0">Not active</option><option value="5">KvK active · 5%</option></select>
+            <span class="hint" id="kvk-hint"></span></label>
+        </div>
+        <p class="foot" id="speed-sum"></p>
+        <p class="foot">Gray Wolf, Double Time and Minister only count for upgrades you <b>start</b> while they're active (5, 5 and 30 min). Pick them only if you'll start your upgrades in that window, ideally all at once.</p>
       </section>
 
       <section class="panel" aria-labelledby="h-ttg">
-        <h2 id="h-ttg"><span class="stepn">3</span>Tempered Truegold</h2>
-        <p class="lede" style="margin:-6px 0 10px;font-size:.88rem">Steps from TG 5.1 on also cost Tempered Truegold. You make it with <b>Super Refinement</b> in the Truegold Crucible, which opens once your Town Center is TG 5 and your kingdom reaches the Truegold 8 stage.</p>
-        <ul class="tg-facts">
-          <li>Each refinement turns Truegold into a random amount of Tempered Truegold, up to <b>100 a week</b>.</li>
-          <li>The price rises every 20 refinements in the week (table below), and the counter resets weekly.</li>
-          <li><b>The first refinement each day is 50% off.</b> Best routine: a batch right after the weekly reset, then one a day on the other 6 days, so the discount lands on the expensive ones.</li>
-        </ul>
-        <div class="tbl"><table class="tg-tiers">
-          <thead><tr><th>Refinement</th><th class="r">Truegold</th><th class="r">Avg Tempered</th><th class="r">TG per Tempered</th></tr></thead>
-          <tbody id="tiers"></tbody></table></div>
-        <h3 class="sub">Weekly plan <span class="tg-need" id="ttg-need"></span></h3>
-        <p class="foot" style="margin-top:0">Tap a row to use that plan. The planner only refines while your goal still needs Tempered Truegold.</p>
-        <div class="tbl"><table id="plans">
-          <thead><tr><th>Per week</th><th class="r">Truegold</th><th class="r">Tempered</th><th class="r">TG each</th><th class="r">Weeks</th><th class="r">Truegold total</th></tr></thead>
-          <tbody></tbody></table></div>
+        <h2 id="h-ttg"><span class="stepn">3</span>Dates</h2>
+        <p class="lede" style="margin:-6px 0 12px;font-size:.88rem">Steps from TG 5.1 on also cost Tempered Truegold, made with Super Refinement. The planner refines only what your goal needs, at the lowest price.</p>
+        <div class="res">
+          <label class="field"><span class="label">Super Refinement opens</span><input id="r-open" type="date"><span class="hint">Your kingdom's Truegold 8 day. Empty: already open</span></label>
+          <label class="field"><span class="label">Ready by</span><input id="r-by" type="date"><span class="hint">Optional, e.g. KvK construction day</span></label>
+        </div>
+        <div class="foot tg-refsum" id="ref-sum"></div>
+        <details>
+          <summary>How Super Refinement works</summary>
+          <ul class="tg-facts">
+            <li>It's in the Truegold Crucible, once your Town Center is TG 5 and your kingdom reaches the Truegold 8 stage.</li>
+            <li>Each refinement turns Truegold into a random amount of Tempered Truegold, up to <b>100 a week</b>. The counter resets weekly; the planner takes the reset as Monday.</li>
+            <li>The price rises every 20 refinements in the week (table below).</li>
+            <li><b>The first refinement each day is 50% off.</b> Best routine: a batch right after the weekly reset, then one a day on the other 6 days, so the discount lands on the expensive ones.</li>
+            <li>With a "Ready by" date, the planner spreads refining evenly over the weeks left, which costs less than doing it all in one week.</li>
+          </ul>
+          <div class="tbl"><table class="tg-tiers">
+            <thead><tr><th>Refinement</th><th class="r">Truegold</th><th class="r">Avg Tempered</th><th class="r">TG per Tempered</th></tr></thead>
+            <tbody id="tiers"></tbody></table></div>
+        </details>
       </section>
     </div>
 
     <div class="col">
       <section class="panel results" aria-labelledby="h-plan">
         <h2 id="h-plan">Your Truegold plan</h2>
+        <p class="tg-verdict" id="verdict" hidden></p>
         <div class="summary tg-sum">
           <div class="stat"><div class="label">Truegold</div><div class="v" id="s-tg">—</div><div class="tg-sub" id="s-tg2"></div></div>
           <div class="stat"><div class="label">Tempered</div><div class="v" id="s-ttg">—</div><div class="tg-sub" id="s-ttg2"></div></div>
-          <div class="stat"><div class="label">Done in</div><div class="v up" id="s-days">—</div><div class="tg-sub" id="s-date"></div></div>
+          <div class="stat"><div class="label">Ready on</div><div class="v up" id="s-days">—</div><div class="tg-sub" id="s-date"></div></div>
         </div>
         <div class="tbl"><table id="per">
           <thead><tr><th>Building</th><th>Upgrade</th><th class="r">Truegold</th><th class="r">Tempered</th><th class="r">Build time</th></tr></thead>
           <tbody></tbody></table></div>
         <h3 class="sub">Order</h3>
-        <p class="foot" style="margin-top:0">Day 0 is today. The Town Center goes first, and other buildings fill the free builder when their requirements are met and the Truegold is there.</p>
+        <p class="foot" style="margin-top:0" id="order-note"></p>
         <ol class="plan" id="order"></ol>
         <div class="notes" id="notes"></div>
         <details>
           <summary>How it's worked out</summary>
-          <p>Costs, build times and requirements for every step from level 30 to TG 8 come from Kingshot Optimizer's building pages; the totals match kingshot.net (29,927 Truegold and 904 Tempered Truegold for all 8 buildings to TG 8). Academy level 30, needed for Town Center 30.1, is assumed done.</p>
-          <p>Build time is divided by (1 + construction speed). Speedups aren't counted. The schedule adds your daily Truegold every day and runs your Super Refinement plan once a week, from the day your Town Center is TG 5, while your goal still needs Tempered Truegold. Tempered Truegold uses the average result per refinement, so real luck will vary.</p>
+          <p>Costs, build times and requirements for every step from level 30 to TG 8 come from Kingshot Optimizer's building pages; the totals match kingshot.net (29,927 Truegold and 904 Tempered Truegold for all 8 buildings to TG 8). Academy level 30, needed for Town Center 30.1, is assumed done. Building icons are also from Kingshot Optimizer.</p>
+          <p>Build time = base time ÷ (1 + construction speed + Gray Wolf + Minister + Ground Works + KvK), then × 0.8 with Double Time, the same way as Kingshot Optimizer's building calculator. The planner applies the bonuses you pick to every step. Gray Wolf and Double Time last 5 minutes and Minister 30 minutes, and a bonus only counts for upgrades started while it's active, so pick them only if you start your upgrades in that window. Speedups are used for the whole goal: if they cover its total build time every upgrade is instant, otherwise each build is shortened by the same share. The schedule adds your daily Truegold every day and refines once a week (the opening week, then every Monday), from the day Super Refinement opens and your Town Center is TG 5, while your goal still needs Tempered Truegold. With a "Ready by" date it spreads refining evenly over the weeks left; the shortfall shown is against the most Tempered your Truegold can buy by then. Tempered Truegold uses the average result per refinement, so real luck will vary.</p>
           <p>Refinement prices and average results come from community guides (h5joy Kingshot guide); the 50% daily discount is applied to one refinement per day.</p>
         </details>
       </section>

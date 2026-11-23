@@ -1,5 +1,5 @@
 (function(){
-const {TROOPS,SLOT_OF,PROFILES,XP,IMB,statOf,masteryCap,maxLevel,weight,value,MS_LEVELS,milestone,msValue,pathCost,raiseMastery,candidates,score,chestRate,chestMyth,optimizeOnce,optimize,TROOP_IMG,gearImg,BADGE,enhTier,enh,cumXP,setMode,getMode,BASE_SHARE,norm,formationWeights,weightsFor}=window.HG;
+const {TROOPS,SLOT_OF,PROFILES,XP,IMB,statOf,masteryCap,maxLevel,weight,value,MS_LEVELS,milestone,msValue,pathCost,raiseMastery,candidates,score,chestRate,chestMyth,optimizeOnce,optimize,TROOP_IMG,gearImg,BADGE,enhTier,enhLabel,enh,cumXP,setMode,getMode,BASE_SHARE,norm,formationWeights,weightsFor}=window.HG;
 const EXAMPLE={chests:0,fh:2359,myth:99,mith:122,xp:5000000,profile:'gen4',mode:'exp',ms:true,bought:{p5:false,p10:false,p20:false,p50:false,n100:0},fbought:{p5:false,p10:false,p20:false,p50:false,n100:0},fassume:{fh:12},fcombo:0,hbought:{p5:false,p10:false,p20:false,p50:false,n100:0},hassume:{xp:8,ch:8,rate:1.5},combo:0,form:{att:[50,20,30],def:[60,40,0],mix:70},planFor:'att',gear:{
   I:[[179,18,'R'],[199,20,'R'],[199,20,'R'],[139,15,'R']],
   C:[[139,17,'R'],[139,13,'R'],[139,12,'R'],[199,19,'R']],
@@ -225,7 +225,7 @@ function renderPreview(st,r){
       cards.push(`<div class="gcw ${up?'up':'same'}" tabindex="0" role="button" data-row="${t.k}${i}" aria-label="Edit ${t.name} ${p.name}">
         <div class="gc gt q${to.q}" title="${tip}" role="img" aria-label="${tip}">
           ${BADGE[t.k]}<img src="${gearImg(t.k,i)}" alt="" loading="lazy" decoding="async">
-          ${to.q==='R'?`<span class="hg-pill e${enhTier(to)}">${enh(to)}</span>`:''}<span class="gt-lbl">Lv. ${to.M}</span>
+          ${enhLabel(to)}<span class="gt-lbl">Lv. ${to.M}</span>
         </div>
         <span class="gn">${p.name}</span>
         ${up?`<span class="gw">was ${enh(from)} · Lv ${from.M}</span>`:'<span class="gw">&nbsp;</span>'}</div>`);

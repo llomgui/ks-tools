@@ -161,7 +161,9 @@ const BADGE={
   A:'<g fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 6.5c5.6-.6 10 3.8 10.5 10.5"/><path d="M7 6.5l10.5 10.5"/><path d="M8.5 15.5l7-7M15.5 8.5h-2.6M15.5 8.5v2.6"/></g>'};
 Object.keys(BADGE).forEach(k=>BADGE[k]=`<svg class="hg-tb" viewBox="0 0 24 26" aria-hidden="true">${BADGE_SHAPE}${BADGE[k]}</svg>`);
 /* pill colour follows enhancement: 0-19 grey, 20-39 green, 40-59 blue, 60-79 purple, 80-99 gold, 100 red */
-const enhTier=s=>Math.min(5,Math.floor((s.L-100)/20));   /* Red only: Mythic has no +N label */
+const enhTier=s=>Math.min(5,Math.floor((s.L-100)/20));   /* Red only: the pill colour */
+/* tile label: Red shows +N on a coloured pill, Mythic shows plain white +N (nothing at +0) */
+const enhLabel=p=>p.q==='R'?`<span class="hg-pill e${enhTier(p)}">${enh(p)}</span>`:p.L>0?`<span class="hg-plain">${enh(p)}</span>`:'';
 const enh=s=>'+'+(s.q==='R'?s.L-100:s.L);
 const cumXP=L=>{let c=0;for(let x=1;x<=L;x++)c+=XP[x];return c;};
 /* ---------- Formations ---------- */
@@ -178,5 +180,5 @@ function weightsFor(st,which){
 
 const setMode=m=>{MODE=m==='conq'?'conq':'exp';};
 const getMode=()=>MODE;
-window.HG={TROOPS,SLOT_OF,PROFILES,XP,IMB,statOf,masteryCap,maxLevel,weight,value,MS_LEVELS,milestone,msValue,pathCost,raiseMastery,candidates,score,chestRate,chestMyth,optimizeOnce,optimize,TROOP_IMG,gearImg,BADGE,enhTier,enh,cumXP,setMode,getMode,BASE_SHARE,norm,formationWeights,weightsFor};
+window.HG={TROOPS,SLOT_OF,PROFILES,XP,IMB,statOf,masteryCap,maxLevel,weight,value,MS_LEVELS,milestone,msValue,pathCost,raiseMastery,candidates,score,chestRate,chestMyth,optimizeOnce,optimize,TROOP_IMG,gearImg,BADGE,enhTier,enhLabel,enh,cumXP,setMode,getMode,BASE_SHARE,norm,formationWeights,weightsFor};
 })();
