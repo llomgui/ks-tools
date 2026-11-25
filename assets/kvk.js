@@ -11,7 +11,9 @@ const DAYS=[null,
   {n:'Pet Training',ms:[80000,150000,300000]},
   {n:'Hero Development',ms:[80000,150000,300000]},
   {n:'Power Boost',ms:[40000,130000,250000]}];
-const TROOP_PTS=[3,4,5,8,12,18,25,35,45,60,75];  /* train 1 troop, level 1..11, day 4 */
+const TROOP_PTS=[0,3,4,5,8,12,18,25,35,45,60,75];  /* points for 1 troop of level 1..11 on day 4; promoting scores the difference */
+const trPts=x=>Math.max(0,TROOP_PTS[x.t]-TROOP_PTS[x.f]);
+const trName=x=>x.f?`Promote level ${x.f} → ${x.t}`:`Train level ${x.t}`;
 /* k, name, group, points per unit, days, input unit; mul converts the input to scoring units */
 const T=[
   {k:'spc',n:'Construction speedups',g:'Speedups',p:30,d:[1,2,5],u:'days',mul:1440,step:0.1},
@@ -36,17 +38,18 @@ const T=[
   {k:'pet',n:'Pet Advancement score',g:'Pets',p:50,d:[3,5],h:'Score gained by advancing pets'},
   {k:'ggc',n:'Charm Score',g:'Governor',p:70,d:[1,3,4],h:'From your Charms plan'},
   {k:'gg',n:'Governor Gear Score',g:'Governor',p:36,d:[5],h:'From your Governor Gear materials'},
-  {k:'trn',n:'Troops to train',g:'Troops & missions',p:0,d:[4],h:'Count of troops trained on day 4'},
-  {k:'intel',n:'Intel missions a day',g:'Troops & missions',p:6000,d:[1,3,5],h:'Count each of days 1, 3 and 5'}];
+  {k:'intel',n:'Intel missions a day',g:'Missions',p:6000,d:[1,3,5],h:'Count each of days 1, 3 and 5'}];
 const TK={};T.forEach(t=>TK[t.k]=t);
 const GROUPS=[...new Set(T.map(t=>t.g))];
 
 /* ---------- state ---------- */
 const KEY='ks-kvk-v1';
-const blank=()=>({inv:Object.fromEntries(T.map(t=>[t.k,0])),tlv:10,start:'',src:{}});
+const blank=()=>({inv:Object.fromEntries(T.map(t=>[t.k,0])),troops:[{f:0,t:10,n:0}],start:'',src:{}});
 function clean(o){const s=blank();o=o||{};const inv=o.inv||{};
   T.forEach(t=>{s.inv[t.k]=Math.max(0,+inv[t.k]||0);});
-  s.tlv=Math.max(1,Math.min(11,Math.floor(+o.tlv||10)));
+  const tr=Array.isArray(o.troops)?o.troops:(+inv.trn>0?[{f:0,t:+o.tlv||10,n:+inv.trn}]:[]);
+  s.troops=tr.slice(0,8).map(x=>{const t=Math.max(1,Math.min(11,Math.floor(+x.t||10)));return {f:Math.max(0,Math.min(t-1,Math.floor(+x.f||0))),t,n:Math.max(0,Math.floor(+x.n||0))};});
+  if(!s.troops.length)s.troops=[{f:0,t:10,n:0}];
   s.start=/^\d{4}-\d{2}-\d{2}$/.test(o.start||'')?o.start:'';
   s.src=o.src&&typeof o.src==='object'?Object.fromEntries(Object.entries(o.src).filter(([k,v])=>TK[k]&&typeof v==='string').map(([k,v])=>[k,v.slice(0,40)])):{};
   return s;}
@@ -100,12 +103,13 @@ function fromPages(){
 function apply(r){Object.entries(r.vals).forEach(([k,v])=>{st.inv[k]=v;st.src[k]=r.src;});}
 
 /* ---------- plan ---------- */
-function units(t){return t.k==='trn'?Math.floor(st.inv.trn):Math.round((st.inv[t.k]||0)*(t.mul||1));}
-function ptsOf(t){return t.k==='trn'?TROOP_PTS[st.tlv-1]:t.p;}
+function units(t){return Math.round((st.inv[t.k]||0)*(t.mul||1));}
+const ptsOf=t=>t.p;
 function plan(){
   const pts=[0,0,0,0,0,0],use=[null,{},{},{},{},{}];
   const add=(d,k,n)=>{if(n<=0)return;const t=TK[k];use[d][k]=(use[d][k]||0)+n;pts[d]+=n*ptsOf(t);};
   const flex=[];
+  st.troops.forEach((x,i)=>{if(x.n>0&&trPts(x)>0){use[4]['trn'+i]=x.n;pts[4]+=x.n*trPts(x);}});
   T.forEach(t=>{const n=units(t);if(!n||!ptsOf(t))return;
     if(t.k==='intel'){t.d.forEach(d=>add(d,'intel',n));return;}
     if(t.d.length===1){add(t.d[0],t.k,n);return;}
@@ -127,21 +131,30 @@ function plan(){
 /* ---------- render ---------- */
 function buildInputs(){
   $('groups').innerHTML=GROUPS.map(g=>`<h3 class="sub">${g}</h3><div class="res">${T.filter(t=>t.g===g).map(t=>{
-    const extra=t.k==='trn'?`<label class="field"><span class="label">Troop level</span><select id="i-tlv">${TROOP_PTS.map((p,i)=>`<option value="${i+1}">Level ${i+1} · ${p} pts</option>`).join('')}</select></label>`:'';
     return `<label class="field"><span class="label">${t.n}</span><input id="i-${t.k}" data-k="${t.k}" type="number" min="0" step="${t.step||1}">
-      <span class="hint" id="h-${t.k}"></span></label>${extra}`;}).join('')}</div>`).join('');
+      <span class="hint" id="h-${t.k}"></span></label>`;}).join('')}</div>`).join('')
+    +`<h3 class="sub">Troops · day 4</h3><p class="foot" style="margin-top:0">Train new troops, or promote troops you have: promoting level 9 → 10 scores ${TROOP_PTS[10]} − ${TROOP_PTS[9]} = ${TROOP_PTS[10]-TROOP_PTS[9]} points a troop.</p>
+      <div id="troops"></div><button type="button" id="tr-add">Add a row</button>`;
   const tb=$('ptab').querySelector('tbody');
   tb.innerHTML=T.filter(t=>t.k!=='trn').map(t=>`<tr><td>${t.n}</td><td class="r">${fmt(t.p)}${t.u?' / min':''}</td><td>${t.d.join(', ')}</td></tr>`).join('')
-    +`<tr><td>Train 1 troop, level 1 → 11</td><td class="r">${TROOP_PTS.join(' · ')}</td><td>4</td></tr>`;}
+    +`<tr><td>1 troop of level 1 → 11 (promotion: new level − old level)</td><td class="r">${TROOP_PTS.slice(1).join(' · ')}</td><td>4</td></tr>`;}
+function drawTroops(){
+  const lv=(a,b,sel)=>Array.from({length:b-a+1},(_,k)=>a+k).map(l=>`<option value="${l}"${l===sel?' selected':''}>${l?'Level '+l:'New troops'}</option>`).join('');
+  $('troops').innerHTML=st.troops.map((x,i)=>`<div class="kv-tr" data-i="${i}">
+    <label class="field"><span class="label">From</span><select data-f="f">${lv(0,10,x.f)}</select></label>
+    <label class="field"><span class="label">To</span><select data-f="t">${lv(Math.max(1,x.f+1),11,x.t)}</select></label>
+    <label class="field"><span class="label">Troops</span><input data-f="n" type="number" min="0" step="1" value="${x.n||''}"></label>
+    <span class="kv-trp">${trPts(x)} pts each${x.n?`<br><b>${big(x.n*trPts(x))}</b>`:''}</span>
+    ${st.troops.length>1?`<button type="button" class="kv-del" aria-label="Remove row">×</button>`:''}</div>`).join('');
+  $('tr-add').hidden=st.troops.length>=8;}
 function writeInputs(){
   T.forEach(t=>{const el=$('i-'+t.k);el.value=st.inv[t.k]||'';
     const h=$('h-'+t.k);h.innerHTML=(st.src[t.k]?`<b class="kv-from">From ${esc(st.src[t.k])}</b> · `:'')+[t.u?'In days':'',t.h?esc(t.h):''].filter(Boolean).join(' · ');});
-  $('i-tlv').value=st.tlv;$('r-start').value=st.start;}
+  drawTroops();$('r-start').value=st.start;}
 const dayDate=d=>{if(!st.start)return '';const x=new Date(st.start+'T00:00:00');x.setDate(x.getDate()+d-1);
   return x.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});};
 function qtyTxt(t,n){
   if(t.mul===1440){const dd=n/1440;return dd>=1?`${+dd.toFixed(1)} days`:n>=60?`${+(n/60).toFixed(1)} h`:`${n} min`;}
-  if(t.k==='trn')return `${fmt(n)} level ${st.tlv} troops`;
   if(t.k==='intel')return `${fmt(n)} missions`;
   return fmt(n);}
 function render(){
@@ -150,8 +163,8 @@ function render(){
     const D=DAYS[d],pt=p.pts[d];total+=pt;if(pt>p.pts[best])best=d;
     const hit=D.ms.filter(x=>pt>=x).length;ms+=hit;
     const top=D.ms[2]*1.08,bar=Math.min(100,pt/top*100);
-    const rows=Object.entries(p.use[d]).map(([k,n])=>({t:TK[k],n,pts:n*ptsOf(TK[k])})).sort((a,b)=>b.pts-a.pts)
-      .map(r=>`<li><span>${r.t.n}</span><span class="kv-q">${qtyTxt(r.t,r.n)}</span><span class="kv-p">${big(r.pts)}</span></li>`).join('');
+    const rows=Object.entries(p.use[d]).map(([k,n])=>{if(k.startsWith('trn')){const x=st.troops[+k.slice(3)];return {t:{n:trName(x)},n,pts:n*trPts(x),q:fmt(n)+' troops'};}return {t:TK[k],n,pts:n*ptsOf(TK[k])};}).sort((a,b)=>b.pts-a.pts)
+      .map(r=>`<li><span>${r.t.n}</span><span class="kv-q">${r.q||qtyTxt(r.t,r.n)}</span><span class="kv-p">${big(r.pts)}</span></li>`).join('');
     const next=D.ms.find(x=>pt<x);
     return `<article class="kv-day${hit===3?' done':''}">
       <div class="kv-dh"><span class="kv-dn">Day ${d}</span><b>${D.n}</b><span class="kv-dd">${dayDate(d)}</span><span class="kv-tot">${big(pt)}</span></div>
@@ -175,7 +188,7 @@ function render(){
   save();}
 
 /* ---------- code ---------- */
-const exportCode=()=>'KSK1:'+btoa(unescape(encodeURIComponent(JSON.stringify({inv:Object.fromEntries(Object.entries(st.inv).filter(([,v])=>v)),tlv:st.tlv,start:st.start,src:st.src})))).replace(/=+$/,'');
+const exportCode=()=>'KSK1:'+btoa(unescape(encodeURIComponent(JSON.stringify({inv:Object.fromEntries(Object.entries(st.inv).filter(([,v])=>v)),troops:st.troops.filter(x=>x.n),start:st.start,src:st.src})))).replace(/=+$/,'');
 
 /* ---------- events ---------- */
 const say=(t,c)=>{const m=$('msg');m.textContent=t;m.className='msg '+c;};
@@ -183,7 +196,14 @@ function showSrcs(list){$('srcs').innerHTML=list.map(r=>{const v=Object.entries(
   return `<span class="chip">${esc(r.src)}</span> ${v||'nothing to add'}${r.extra?` <small>(${esc(r.extra)})</small>`:''}`;}).map(x=>`<p>${x}</p>`).join('');}
 $('groups').addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;st.inv[k]=Math.max(0,+e.target.value||0);delete st.src[k];
   const h=$('h-'+k),t=TK[k];h.innerHTML=[t.u?'In days':'',t.h?esc(t.h):''].filter(Boolean).join(' · ');render();});
-$('groups').addEventListener('change',e=>{if(e.target.id==='i-tlv'){st.tlv=+e.target.value;render();}});
+function trEdit(e,redraw){const row=e.target.closest('.kv-tr');if(!row)return;const x=st.troops[+row.dataset.i],k=e.target.dataset.f;if(!k)return;
+  x[k]=Math.max(0,Math.floor(+e.target.value||0));if(k==='f'&&x.t<=x.f)x.t=Math.min(11,x.f+1);
+  if(redraw)drawTroops();else{const p=row.querySelector('.kv-trp');p.innerHTML=`${trPts(x)} pts each${x.n?`<br><b>${big(x.n*trPts(x))}</b>`:''}`;}render();}
+$('groups').addEventListener('input',e=>{if(e.target.dataset.f==='n')trEdit(e,false);});
+$('groups').addEventListener('change',e=>{if(e.target.tagName==='SELECT'&&e.target.dataset.f)trEdit(e,true);});
+$('groups').addEventListener('click',e=>{
+  if(e.target.id==='tr-add'){const l=st.troops[st.troops.length-1];st.troops.push({f:l?l.t-1:9,t:l?l.t:10,n:0});drawTroops();render();}
+  else if(e.target.classList.contains('kv-del')){st.troops.splice(+e.target.closest('.kv-tr').dataset.i,1);drawTroops();render();}});
 $('r-start').addEventListener('change',()=>{st.start=$('r-start').value;render();});
 $('btn-pages').addEventListener('click',()=>{const got=fromPages();
   if(!got.length){say('Nothing found yet. Fill in the Hero Gear, Governor Gear, Charms or Truegold pages in this browser first.','err');return;}
