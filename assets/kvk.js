@@ -77,7 +77,7 @@ function fromHeroGear(fh,mith,src){const out={};if(fh>0)out.ham=fh;if(mith>0)out
 function fromGov(pieces,inv,src){
   if(!pieces||!inv)return null;const r=govScore(pieces,inv);
   return {vals:{gg:r.score},src,extra:r.n?`${r.n} purchases`:'materials buy no upgrade yet'};}
-function fromCharms(o,src){const c=CH.clean(o);const p=CH.optimize(c.cur,c,CH.weightsFor(c.f));return {vals:{ggc:Math.round(p.score)},src};}
+function fromCharms(o,src){const c=CH.clean(o);const p=CH.planFor(c);return {vals:{ggc:Math.round(p.score)},src};}
 function fromTruegold(o,src){const out={};if(+o.tg>0)out.tg=+o.tg;if(+o.ttg>0)out.tgt=+o.ttg;return {vals:out,src};}
 function readCode(txt){
   const raw=String(txt||'').trim().replace(/^.*#/,'');

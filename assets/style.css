@@ -436,9 +436,10 @@ body.is-updating .upd{display:inline-block;animation:upd 1s ease-in-out infinite
 .ch-row .sel2{flex:1;min-width:0}
 .ch-gains{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px}
 .ch-gain{background:var(--sunk);border-radius:8px;padding:8px 10px;min-width:0}
-.ch-gain b{display:block;font-family:var(--mono);font-weight:500;font-size:.95rem}
+.ch-gain b{display:block;font-family:var(--mono);font-weight:500;font-size:.9rem}
+.ch-gain b.no{color:var(--muted)}
+.seg.dim{opacity:.45}
 .ch-gain.up b{color:var(--good)}
-.ch-gain small{color:var(--muted);font-size:.74rem}
 .ch-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:10px}
 .ch-tp{background:var(--sunk);border-radius:8px;padding:8px}
 .ch-tp>div{display:flex;gap:4px;margin-top:4px}
@@ -477,3 +478,5 @@ body.is-updating .upd{display:inline-block;animation:upd 1s ease-in-out infinite
 .kv-trp b{color:var(--ink);font-weight:500}
 .kv-del{padding:6px 10px;margin-bottom:2px}
 @media (max-width:520px){.kv-tr{grid-template-columns:1fr 1fr 1fr}.kv-trp{grid-column:1/3}}
+.stat .v.ch-mat{font-size:.95rem;line-height:1.35}
+.stat .v.ch-mat small{font-family:var(--body);font-size:.72rem;color:var(--muted)}

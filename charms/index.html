@@ -55,12 +55,23 @@
         <div class="res">
           <label class="field"><span class="label">Charm Guides</span><input id="r-g" type="number" min="0" step="1"></label>
           <label class="field"><span class="label">Charm Designs</span><input id="r-d" type="number" min="0" step="1"><span class="hint">Usually the one you run out of</span></label>
+          <label class="field"><span class="label">Exchange</span><select id="r-x">
+            <option value="0">Don't exchange</option><option value="1">1:1 only · 10 a week</option><option value="2">1:1, then 2:1 · up to 500 a week</option></select>
+            <span class="hint">Guides ↔ Designs, when one runs short</span></label>
         </div>
-        <h3 class="sub" style="margin-top:18px">Focus</h3>
+        <h3 class="sub" style="margin-top:18px">Goal</h3>
+        <div class="seg" id="mode" role="group" aria-label="Goal">
+          <button type="button" data-m="stats">Most stats</button><button type="button" data-m="score">Most KvK points</button>
+        </div>
+        <div class="res" id="tp-box" style="margin-top:10px">
+          <label class="field"><span class="label">KvK points target</span><input id="r-tp" type="number" min="0" step="1000"><span class="hint">Optional: stop once reached</span></label>
+        </div>
+        <p class="foot" id="mode-foot"></p>
+        <h3 class="sub" style="margin-top:18px">Troop priority</h3>
         <div class="seg" id="focus" role="group" aria-label="Troop focus">
           <button type="button" data-f="all">All troops</button><button type="button" data-f="I">Infantry</button><button type="button" data-f="C">Cavalry</button><button type="button" data-f="A">Archer</button>
         </div>
-        <p class="foot">With a troop picked, its charms count 3 times as much as the others.</p>
+        <p class="foot" id="focus-foot">With a troop picked, its charms count 1.4 times as much as the others, so cheap upgrades on the other troops still come first.</p>
       </section>
 
       <section class="panel" aria-labelledby="h-ch">
@@ -79,20 +90,21 @@
       <section class="panel results" aria-labelledby="h-plan">
         <h2 id="h-plan">Your charm plan</h2>
         <div class="summary">
-          <div class="stat"><div class="label">Charm Score</div><div class="v up" id="s-score">—</div><div class="tg-sub" id="s-score2"></div></div>
-          <div class="stat"><div class="label">Guides used</div><div class="v" id="s-g">—</div><div class="tg-sub" id="s-g2"></div></div>
-          <div class="stat"><div class="label">Designs used</div><div class="v" id="s-d">—</div><div class="tg-sub" id="s-d2"></div></div>
+          <div class="stat"><div class="label">Power</div><div class="v up" id="s-pw">—</div><div class="tg-sub" id="s-pw2"></div></div>
+          <div class="stat"><div class="label">KvK points</div><div class="v" id="s-kvk">—</div><div class="tg-sub" id="s-kvk2"></div></div>
+          <div class="stat"><div class="label">Materials used</div><div class="v ch-mat" id="s-mat">—</div><div class="tg-sub" id="s-mat2"></div></div>
         </div>
         <div id="gains" class="ch-gains"></div>
         <div id="tiles" class="ch-tiles"></div>
-        <h3 class="sub" id="steps-h">Upgrade order</h3>
+        <h3 class="sub" id="steps-h">Upgrades</h3>
         <ol class="plan" id="steps"></ol>
         <button type="button" id="more" hidden>Show all steps</button>
         <div class="notes" id="notes"></div>
         <details>
           <summary>How it's worked out</summary>
           <p>Costs, Lethality and Health per level and Charm Score come from Kingshot Optimizer's Governor Charms reference. Every charm gives its troop type the same bonus to both Lethality and Health; which slot it's in doesn't matter. Maxing one charm (Lv 1 → 22) takes 10,880 Charm Guides and 19,200 Charm Designs and gives +99%.</p>
-          <p>The plan buys one purchase at a time: the one that adds the most bonus per material, where each material is priced by how much of it you have. Charm Designs run out first for most players, so cheap-in-Designs levels come first.</p>
+          <p>The plan buys one purchase at a time: the one that adds the most per material, where each material is priced by how scarce it is for you right now (cost ÷ amount left², like Kingshot Optimizer). Charm Designs run out first for most players, so levels that are cheap in Designs come first. "Most KvK points" picks by Charm Score instead: it often pushes a few charms very high, which scores well but isn't the best for your account.</p>
+          <p>Exchanges cover a shortfall with the other material: 1:1 for the first 10 a week in each direction, then 2:1 for up to 500 more.</p>
           <p>KvK points: 70 per Charm Score on day 1 (City Construction), day 3 (Pet Training) and day 4 (Hero Development).</p>
         </details>
       </section>

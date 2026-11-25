@@ -2,10 +2,11 @@
 const $=id=>document.getElementById(id);
 const C=window.CH;
 const fmt=n=>Math.round(n).toLocaleString('en-US');
+const big=n=>n>=1e4?(+(n/1e3).toFixed(n>=1e5?0:1))+'K':fmt(n);
 const pct=n=>(+n.toFixed(2)).toString();
 
 /* ---------- state ---------- */
-const EXAMPLE={cur:[11,11,10,9,9,9, 10,10,10,8,8,8, 9,9,9,7,7,7].map(l=>C.posOf(l,0)),g:2400,d:3100,f:'all'};
+const EXAMPLE={cur:[11,11,10,9,9,9, 10,10,10,8,8,8, 9,9,9,7,7,7].map(l=>C.posOf(l,0)),g:2400,d:3100,f:'all',m:'stats',tp:0,x:0};
 let st=C.loadSaved(),isExample=false;
 if(!st){st=C.clean(EXAMPLE);isExample=true;}
 const save=()=>{if(isExample)return;try{localStorage.setItem(C.KEY,JSON.stringify(st))}catch(e){}};
@@ -21,7 +22,11 @@ function buildPieces(){
       <img class="ch-ic" alt="" loading="lazy"><span class="sel2"><select class="lv" aria-label="${pc.n} charm ${k+1} level"></select><select class="st" aria-label="${pc.n} charm ${k+1} stage"></select></span></div>`;}).join('')}</div></div>`).join('');
   $('all-l').innerHTML=lvOpts(10);}
 function writeInputs(){
-  $('r-g').value=st.g||'';$('r-d').value=st.d||'';
+  $('r-g').value=st.g||'';$('r-d').value=st.d||'';$('r-x').value=st.x;$('r-tp').value=st.tp||'';
+  document.querySelectorAll('#mode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===st.m?'true':'false'));
+  $('tp-box').hidden=st.m!=='score';
+  $('focus').classList.toggle('dim',st.m==='score');$('focus-foot').hidden=st.m==='score';
+  $('mode-foot').textContent=st.m==='score'?'Picks by Charm Score (70 KvK points each). It often pushes a few charms very high: good for points, not the best for your account. Troop priority is ignored.':'Picks the upgrades that add the most Lethality and Health for your materials.';
   document.querySelectorAll('#focus button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.f===st.f?'true':'false'));
   document.querySelectorAll('.ch-row').forEach(r=>{const i=+r.dataset.i,{l,s}=C.lvAt(st.cur[i]);
     r.querySelector('.lv').innerHTML=lvOpts(l);const so=r.querySelector('.st');so.innerHTML=stOpts(l,s);so.disabled=!(l>=C.STEP_L&&l<C.MAXL);
@@ -34,22 +39,23 @@ function tile(i,from,to){
   return `<div class="ch-tile${up?' up':''}${b.l===0?' off':''}" title="${C.PIECES[Math.floor(i/3)].n} charm ${i%3+1}: ${C.lvName(from)}${up?' → '+C.lvName(to):''}">
     <img src="${C.img(t,b.l)}" alt="" loading="lazy"><span class="ch-lv">${lbl(to)}</span></div>`;}
 function render(){
-  const w=C.weightsFor(st.f);
-  plan=C.optimize(st.cur,st,w);
-  const tot0=C.totals(st.cur),tot1=C.totals(plan.pos);
-  $('s-score').textContent=plan.score?'+'+fmt(plan.score):'—';
-  $('s-score2').textContent=plan.score?`${fmt(plan.score*70)} KvK points`:'';
-  $('s-g').textContent=fmt(plan.used.g);$('s-g2').textContent=`${fmt(plan.left.g)} left`;
-  $('s-d').textContent=fmt(plan.used.d);$('s-d2').textContent=`${fmt(plan.left.d)} left`;
-  $('gains').innerHTML=['I','C','A'].map(t=>{const d=tot1[t]-tot0[t];
-    return `<div class="ch-gain${d>0?' up':''}"><span class="label">${C.TROOP[t]}</span><b>${pct(tot0[t])}%${d>0?` → ${pct(tot1[t])}%`:''}</b><small>Lethality and Health${d>0?` · +${pct(d)}%`:''}</small></div>`;}).join('');
+  plan=C.planFor(st);
+  const pts=Math.round(plan.score*C.KVK_PTS),ug=st.g-plan.left.g,ud=st.d-plan.left.d;
+  $('s-pw').textContent=plan.power?'+'+fmt(plan.power):'—';$('s-pw2').textContent=plan.steps.length?`${plan.steps.reduce((a,s)=>a+s.to-s.from,0)} upgrades`:'';
+  $('s-kvk').textContent=pts?fmt(pts):'—';$('s-kvk2').textContent=plan.score?`Charm Score +${fmt(plan.score)}`:'';
+  $('s-mat').innerHTML=plan.steps.length?`${fmt(ug)} <small>Guides</small><br>${fmt(ud)} <small>Designs</small>`:'—';
+  $('s-mat2').textContent=`Left: ${fmt(plan.left.g)} · ${fmt(plan.left.d)}`;
+  $('gains').innerHTML=['I','C','A'].map(t=>{const d=plan.stat[t];
+    return `<div class="ch-gain${d>0?' up':''}"><span class="label">${C.TROOP[t]}</span>${d>0?`<b>Lethality +${pct(d)}%</b><b>Health +${pct(d)}%</b>`:'<b class="no">No change</b>'}</div>`;}).join('');
   $('tiles').innerHTML=C.PIECES.map((pc,pi)=>`<div class="ch-tp"><span class="label">${pc.n}</span><div>${[0,1,2].map(k=>tile(pi*3+k,st.cur[pi*3+k],plan.pos[pi*3+k])).join('')}</div></div>`).join('');
-  const steps=plan.steps,LIMIT=15,rows=showAll?steps:steps.slice(0,LIMIT);
+  /* one line per charm: every purchase on it, in the order the charm first comes up */
+  const by=new Map();plan.steps.forEach(x=>{const m=by.get(x.i);if(m){m.to=Math.max(m.to,x.to);m.g+=x.g;m.d+=x.d;}else by.set(x.i,{...x});});
+  const steps=[...by.values()],LIMIT=15,rows=showAll?steps:steps.slice(0,LIMIT);
   $('steps-h').hidden=!steps.length;
   $('steps').innerHTML=rows.map((s,k)=>{const pc=C.PIECES[Math.floor(s.i/3)],t=C.troopOf(s.i);
     return `<li><span class="num">${k+1}</span><div><div class="step-top"><b>${pc.n} charm ${s.i%3+1}</b><span class="move">${C.lvName(s.from)} → ${C.lvName(s.to)}</span><span class="chip">${C.TROOP[t]}</span></div>
       <div class="cost">${fmt(s.g)} Guides · ${fmt(s.d)} Designs</div></div></li>`;}).join('');
-  $('more').hidden=steps.length<=LIMIT;$('more').textContent=showAll?'Show fewer steps':`Show all ${steps.length} steps`;
+  $('more').hidden=steps.length<=LIMIT;$('more').textContent=showAll?'Show fewer steps':`Show all ${steps.length} charms`;
   const notes=[];
   if(!st.g&&!st.d)notes.push('<p>Enter your Charm Guides and Charm Designs in step 1 to get a plan.</p>');
   else if(!steps.length)notes.push("<p>Your materials don't cover the next purchase on any charm yet.</p>");
@@ -58,7 +64,10 @@ function render(){
     if(nx.length){const m=nx.reduce((a,b)=>b.d<a.d?b:a);
       const need=[];if(m.g>plan.left.g)need.push(`${fmt(m.g-plan.left.g)} Guides`);if(m.d>plan.left.d)need.push(`${fmt(m.d-plan.left.d)} Designs`);
       if(need.length)notes.push(`<p>Next cheapest purchase needs ${need.join(' and ')} more.</p>`);}
-    notes.push(`<p>Do it on KvK day 1, 3 or 4: <b>${fmt(plan.score*70)} points</b>. Add the Charm Score to the <a href="../kvk/">KvK planner</a> (it reads this page by itself).</p>`);}
+    if(plan.ex.gd||plan.ex.dg){const e=[];if(plan.ex.gd)e.push(`${fmt(plan.ex.gdCost)} Guides → ${fmt(plan.ex.gd)} Designs`);if(plan.ex.dg)e.push(`${fmt(plan.ex.dgCost)} Designs → ${fmt(plan.ex.dg)} Guides`);
+      notes.push(`<p><b>Exchange first:</b> ${e.join(', ')}. Materials used above include it.</p>`);}
+    if(st.m==='score'&&st.tp>0&&pts<st.tp)notes.push(`<p>Your materials reach ${fmt(pts)} of your ${fmt(st.tp)} points target.</p>`);
+    notes.push(`<p>Do it on KvK day 1, 3 or 4: <b>${fmt(pts)} points</b>. Add the Charm Score to the <a href="../kvk/">KvK planner</a> (it reads this page by itself).</p>`);}
   $('notes').innerHTML=notes.join('');$('notes').hidden=!notes.length;
   if(document.activeElement!==$('code'))$('code').value=C.encode(st);
   save();}
@@ -70,7 +79,9 @@ $('app-ch').addEventListener('change',e=>{
   const r=e.target.closest('.ch-row');
   if(r){const i=+r.dataset.i,l=+r.querySelector('.lv').value,s=+r.querySelector('.st').value;st.cur[i]=C.posOf(l,s);mine();writeInputs();render();return;}
 });
-['r-g','r-d'].forEach(id=>$(id).addEventListener('input',()=>{st[id==='r-g'?'g':'d']=Math.max(0,Math.floor(+$(id).value||0));mine();render();}));
+[['r-g','g'],['r-d','d'],['r-tp','tp']].forEach(([id,k])=>$(id).addEventListener('input',()=>{st[k]=Math.max(0,Math.floor(+$(id).value||0));mine();render();}));
+$('r-x').addEventListener('change',()=>{st.x=+$('r-x').value;mine();render();});
+$('mode').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;st.m=b.dataset.m;mine();writeInputs();render();});
 $('focus').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;st.f=b.dataset.f;mine();writeInputs();render();});
 $('all-go').addEventListener('click',()=>{const l=+$('all-l').value;st.cur=st.cur.map(()=>C.posOf(l,0));mine();writeInputs();render();});
 $('more').addEventListener('click',()=>{showAll=!showAll;render();});
