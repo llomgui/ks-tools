@@ -3,7 +3,6 @@ const $=id=>document.getElementById(id);
 const C=window.CH;
 const fmt=n=>Math.round(n).toLocaleString('en-US');
 const pct=n=>(+n.toFixed(2)).toString();
-const IMG_SLOT={Hood:1,Charmstone:2,Cloak:3,Breeches:4,Ring:5,Staff:6};
 
 /* ---------- state ---------- */
 const EXAMPLE={cur:[11,11,10,9,9,9, 10,10,10,8,8,8, 9,9,9,7,7,7].map(l=>C.posOf(l,0)),g:2400,d:3100,f:'all'};
@@ -17,7 +16,7 @@ const lvOpts=sel=>Array.from({length:C.MAXL+1},(_,l)=>`<option value="${l}"${l==
 const stOpts=(l,s)=>[0,1,2,3,4].map(k=>`<option value="${k}"${k===s?' selected':''}>${k?k+'/5':'—'}</option>`).join('');
 function buildPieces(){
   $('pieces').innerHTML=C.PIECES.map((pc,pi)=>`<div class="ch-piece">
-    <div class="ch-pn"><img src="../assets/gear/${IMG_SLOT[pc.n]}005.png" alt="" loading="lazy"><b>${pc.n}</b><small>${C.TROOP[pc.t]}</small></div>
+    <div class="ch-pn"><b>${pc.n}</b><small>${C.TROOP[pc.t]}</small></div>
     <div class="ch-rows">${[0,1,2].map(k=>{const i=pi*3+k;return `<div class="ch-row" data-i="${i}">
       <img class="ch-ic" alt="" loading="lazy"><span class="sel2"><select class="lv" aria-label="${pc.n} charm ${k+1} level"></select><select class="st" aria-label="${pc.n} charm ${k+1} stage"></select></span></div>`;}).join('')}</div></div>`).join('');
   $('all-l').innerHTML=lvOpts(10);}
