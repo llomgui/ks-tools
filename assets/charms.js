@@ -14,12 +14,14 @@ let showAll=false,plan=null;
 
 /* ---------- inputs ---------- */
 const lvOpts=sel=>Array.from({length:C.MAXL+1},(_,l)=>`<option value="${l}"${l===sel?' selected':''}>Lv ${l}</option>`).join('');
-const stOpts=(l,s)=>[0,1,2,3,4].map(k=>`<option value="${k}"${k===s?' selected':''}>${k}/5</option>`).join('');
+/* one dropdown per charm: every purchase, "9 · 2/5" (level · stage) for levels bought in 5 stages */
+const POS_OPTS=Array.from({length:C.PMAX+1},(_,p)=>{const {l,s}=C.lvAt(p);return `<option value="${p}">${l>=C.STEP_L&&l<C.MAXL?`${l} · ${s}/5`:`Lv ${l}`}</option>`;}).join('');
+/* the 3 charms of a piece sit in a triangle, like the game: one on top, two below */
 function buildPieces(){
-  $('pieces').innerHTML=C.PIECES.map((pc,pi)=>`<div class="ch-piece">
+  $('pieces').innerHTML=C.PIECES.map((pc,pi)=>`<div class="ch-pc">
     <div class="ch-pn"><b>${pc.n}</b><small>${C.TROOP[pc.t]}</small></div>
-    <div class="ch-rows">${[0,1,2].map(k=>{const i=pi*3+k;return `<div class="ch-row" data-i="${i}">
-      <img class="ch-ic" alt="" loading="lazy"><span class="sel2"><select class="lv" aria-label="${pc.n} charm ${k+1} level"></select><select class="st" aria-label="${pc.n} charm ${k+1} stage"></select></span></div>`;}).join('')}</div></div>`).join('');
+    <div class="ch-tri">${[0,1,2].map(k=>{const i=pi*3+k;return `<label class="ch-row" data-i="${i}">
+      <img class="ch-ic" alt="" loading="lazy"><select class="pos" aria-label="${pc.n} charm ${k+1}">${POS_OPTS}</select></label>`;}).join('')}</div></div>`).join('');
   $('all-l').innerHTML=lvOpts(10);}
 function writeInputs(){
   $('r-g').value=st.g||'';$('r-d').value=st.d||'';$('r-x').value=st.x;$('r-tp').value=st.tp||'';
@@ -30,8 +32,8 @@ function writeInputs(){
   $('w-prof').value=st.prof;$('w-for').value=st.for;$('w-mix').value=st.mix;
   ['I','C','A'].forEach(t=>{$('fa-'+t).value=st.att[t];$('fd-'+t).value=st.def[t];});
   $('mixf').hidden=st.for!=='mix';
-  document.querySelectorAll('.ch-row').forEach(r=>{const i=+r.dataset.i,{l,s}=C.lvAt(st.cur[i]);
-    r.querySelector('.lv').innerHTML=lvOpts(l);const so=r.querySelector('.st');so.innerHTML=stOpts(l,s);so.disabled=!(l>=C.STEP_L&&l<C.MAXL);
+  document.querySelectorAll('.ch-row').forEach(r=>{const i=+r.dataset.i,{l}=C.lvAt(st.cur[i]);
+    r.querySelector('.pos').value=st.cur[i];
     const ic=r.querySelector('.ch-ic');ic.src=C.img(C.troopOf(i),l);ic.classList.toggle('off',l===0);});}
 
 /* ---------- render ---------- */
@@ -85,7 +87,7 @@ const say=(t,c)=>{const m=$('msg');m.textContent=t;m.className='msg '+c;};
 const mine=()=>{if(isExample){isExample=false;}};
 $('app-ch').addEventListener('change',e=>{
   const r=e.target.closest('.ch-row');
-  if(r){const i=+r.dataset.i,l=+r.querySelector('.lv').value,s=+r.querySelector('.st').value;st.cur[i]=C.posOf(l,s);mine();writeInputs();render();return;}
+  if(r){const i=+r.dataset.i;st.cur[i]=+r.querySelector('.pos').value;mine();writeInputs();render();return;}
 });
 [['r-g','g'],['r-d','d'],['r-tp','tp']].forEach(([id,k])=>$(id).addEventListener('input',()=>{st[k]=Math.max(0,Math.floor(+$(id).value||0));mine();render();}));
 $('r-x').addEventListener('change',()=>{st.x=+$('r-x').value;mine();render();});
