@@ -16,13 +16,42 @@ let showAll=false,plan=null;
 const lvOpts=sel=>Array.from({length:C.MAXL+1},(_,l)=>`<option value="${l}"${l===sel?' selected':''}>Lv ${l}</option>`).join('');
 /* one dropdown per charm: every purchase, "9 · 2/5" (level · stage) for levels bought in 5 stages */
 const POS_OPTS=Array.from({length:C.PMAX+1},(_,p)=>{const {l,s}=C.lvAt(p);return `<option value="${p}">${l>=C.STEP_L&&l<C.MAXL?`${l} · ${s}/5`:`Lv ${l}`}</option>`;}).join('');
-/* the 3 charms of a piece sit in a triangle, like the game: one on top, two below */
+/* laid out like the game's Governor Gear screen: gear pieces on both sides (Hood, Cloak, Ring on the left;
+   Charmstone, Breeches, Staff on the right), the picked piece's 3 charms on a ring in the middle, and the picked
+   charm's stage bar, power, stat bonuses and next upgrade cost below */
+const IMG_SLOT={Hood:1,Charmstone:2,Cloak:3,Breeches:4,Ring:5,Staff:6};
+let selP=0,selC=0;
+function pieceBtn(pi){const pc=C.PIECES[pi];
+  return `<button type="button" class="cg-pc" data-p="${pi}" aria-label="${pc.n}, ${C.TROOP[pc.t]} charms"><img class="cg-gear" src="../assets/gear/${IMG_SLOT[pc.n]}005.png" alt="">
+    <span class="cg-mini">${[0,1,2].map(k=>`<img data-mi="${pi*3+k}" alt="">`).join('')}</span><span class="cg-lvs" data-lvs="${pi}"></span></button>`;}
 function buildPieces(){
-  $('pieces').innerHTML=C.PIECES.map((pc,pi)=>`<div class="ch-pc">
-    <div class="ch-pn"><b>${pc.n}</b><small>${C.TROOP[pc.t]}</small></div>
-    <div class="ch-tri">${[0,1,2].map(k=>{const i=pi*3+k;return `<label class="ch-row" data-i="${i}">
-      <img class="ch-ic" alt="" loading="lazy"><select class="pos" aria-label="${pc.n} charm ${k+1}">${POS_OPTS}</select></label>`;}).join('')}</div></div>`).join('');
+  $('pieces').innerHTML=`<div class="cg"><div class="cg-side">${[0,2,4].map(pieceBtn).join('')}</div>
+    <div class="cg-mid"><p class="cg-name" id="cg-name"></p><div class="cg-ring">${[0,1,2].map(k=>`<div class="cg-ch k${k}" data-k="${k}">
+      <button type="button" class="cg-chb" data-k="${k}"><img alt=""></button><select class="pos" data-k="${k}">${POS_OPTS}</select></div>`).join('')}</div></div>
+    <div class="cg-side">${[1,3,5].map(pieceBtn).join('')}</div></div>
+    <div class="cg-det" id="cg-det"></div>`;
   $('all-l').innerHTML=lvOpts(10);}
+function drawCharms(){
+  document.querySelectorAll('.cg-pc').forEach(b=>{const pi=+b.dataset.p;b.classList.toggle('on',pi===selP);b.setAttribute('aria-pressed',pi===selP?'true':'false');
+    b.querySelectorAll('[data-mi]').forEach(im=>{const i=+im.dataset.mi,{l}=C.lvAt(st.cur[i]);im.src=C.img(C.troopOf(i),l);im.classList.toggle('off',l===0);});
+    b.querySelector('.cg-lvs').textContent=[0,1,2].map(k=>C.lvAt(st.cur[pi*3+k]).l).join(' ');});
+  const pc=C.PIECES[selP];$('cg-name').innerHTML=`<b>${pc.n}</b> ${C.TROOP[pc.t]}`;
+  document.querySelectorAll('.cg-ch').forEach(el=>{const k=+el.dataset.k,i=selP*3+k,{l}=C.lvAt(st.cur[i]);
+    el.classList.toggle('on',k===selC);const im=el.querySelector('img');im.src=C.img(pc.t,l);im.classList.toggle('off',l===0);
+    const so=el.querySelector('select');so.value=st.cur[i];so.setAttribute('aria-label',`${pc.n} charm ${k+1} level`);
+    el.querySelector('button').setAttribute('aria-label',`Show ${pc.n} charm ${k+1}`);});
+  const i=selP*3+selC,p=st.cur[i],{l,s}=C.lvAt(p),T=C.TROOP[pc.t],now=C.CUM[p];
+  const staged=l>=C.STEP_L&&l<C.MAXL;
+  const bar=staged?`<div class="cg-bar" role="group" aria-label="Stage toward Lv ${l+1}">${[1,2,3,4,5].map(j=>`<button type="button" data-s="${j}" class="${j<=s?'on':''}" ${j===5?'disabled':''} aria-label="${j} of 5"></button>`).join('')}</div>
+    <p class="cg-sub">Lv ${l} · ${s}/5 toward Lv ${l+1}: click the bar to set it</p>`:'';
+  let rows;
+  if(p>=C.PMAX)rows=`<p class="cg-sub">Max level. ${T} Lethality and Health +${now.stat.toFixed(2)}%</p>`;
+  else{const b=C.buy(p+1),nx=(now.stat+b.stat).toFixed(2),ok=(h,n)=>h>=n?'':' short';
+    rows=`<div class="cg-pw">Power <b>${fmt(now.pw)}</b> <span class="up">+${fmt(b.pw)}</span></div>
+    <table class="cg-st"><tbody><tr><td>${T} Lethality</td><td>+${now.stat.toFixed(2)}%</td><td>→</td><td class="up">+${nx}%</td></tr>
+      <tr><td>${T} Health</td><td>+${now.stat.toFixed(2)}%</td><td>→</td><td class="up">+${nx}%</td></tr></tbody></table>
+    <div class="cg-cost"><span class="label">Upgrade cost</span><span class="${ok(st.g,b.g)}">Guides ${fmt(st.g)}/${fmt(b.g)}</span><span class="${ok(st.d,b.d)}">Designs ${fmt(st.d)}/${fmt(b.d)}</span></div>`;}
+  $('cg-det').innerHTML=`<p class="cg-title">${pc.n} charm ${selC+1} · <b>Lv ${l}</b></p>${bar}${rows}`;}
 function writeInputs(){
   $('r-g').value=st.g||'';$('r-d').value=st.d||'';$('r-x').value=st.x;$('r-tp').value=st.tp||'';
   document.querySelectorAll('#mode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===st.m?'true':'false'));
@@ -32,9 +61,7 @@ function writeInputs(){
   $('w-prof').value=st.prof;$('w-for').value=st.for;$('w-mix').value=st.mix;
   ['I','C','A'].forEach(t=>{$('fa-'+t).value=st.att[t];$('fd-'+t).value=st.def[t];});
   $('mixf').hidden=st.for!=='mix';
-  document.querySelectorAll('.ch-row').forEach(r=>{const i=+r.dataset.i,{l}=C.lvAt(st.cur[i]);
-    r.querySelector('.pos').value=st.cur[i];
-    const ic=r.querySelector('.ch-ic');ic.src=C.img(C.troopOf(i),l);ic.classList.toggle('off',l===0);});}
+  drawCharms();}
 
 /* ---------- render ---------- */
 function tile(i,from,to){
@@ -86,9 +113,14 @@ function render(){
 const say=(t,c)=>{const m=$('msg');m.textContent=t;m.className='msg '+c;};
 const mine=()=>{if(isExample){isExample=false;}};
 $('app-ch').addEventListener('change',e=>{
-  const r=e.target.closest('.ch-row');
-  if(r){const i=+r.dataset.i;st.cur[i]=+r.querySelector('.pos').value;mine();writeInputs();render();return;}
+  const so=e.target.closest('.cg-ch select');
+  if(so){const k=+so.dataset.k;selC=k;st.cur[selP*3+k]=+so.value;mine();drawCharms();render();}
 });
+$('pieces').addEventListener('click',e=>{
+  const pb=e.target.closest('.cg-pc');if(pb){selP=+pb.dataset.p;selC=0;drawCharms();return;}
+  const cb=e.target.closest('.cg-chb');if(cb){selC=+cb.dataset.k;drawCharms();return;}
+  const sb=e.target.closest('.cg-bar button');if(sb){const i=selP*3+selC,{l,s}=C.lvAt(st.cur[i]),j=+sb.dataset.s;
+    st.cur[i]=C.posOf(l,j===s?j-1:j);mine();drawCharms();render();}});
 [['r-g','g'],['r-d','d'],['r-tp','tp']].forEach(([id,k])=>$(id).addEventListener('input',()=>{st[k]=Math.max(0,Math.floor(+$(id).value||0));mine();render();}));
 $('r-x').addEventListener('change',()=>{st.x=+$('r-x').value;mine();render();});
 $('mode').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;st.m=b.dataset.m;mine();writeInputs();render();});

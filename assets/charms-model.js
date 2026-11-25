@@ -14,7 +14,7 @@ const MAXL=22,STEP_L=5;                       /* levels after 5 are bought in 5 
 const PMAX=STEP_L+5*(MAXL-STEP_L);            /* 90 purchases from Lv 0 to Lv 22 */
 const KVK_PTS=70;
 /* a charm's progress is a "position": one step per purchase */
-const posOf=(l,s)=>l<=STEP_L?Math.max(0,l):STEP_L+5*(l-STEP_L)+(l<MAXL?Math.max(0,Math.min(4,s|0)):0);
+const posOf=(l,s)=>l<STEP_L?Math.max(0,l):STEP_L+5*(l-STEP_L)+(l<MAXL?Math.max(0,Math.min(4,s|0)):0);
 const lvAt=p=>p<=STEP_L?{l:p,s:0}:{l:STEP_L+Math.floor((p-STEP_L)/5),s:(p-STEP_L)%5};
 const lvName=p=>{const {l,s}=lvAt(p);return l===0?'Lv 0':`Lv ${l}${s?` · ${s}/5`:''}`;};
 /* the purchase that moves a charm from position p-1 to p */

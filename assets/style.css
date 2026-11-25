@@ -482,3 +482,41 @@ body.is-updating .upd{display:inline-block;animation:upd 1s ease-in-out infinite
 @media (max-width:520px){.kv-tr{grid-template-columns:1fr 1fr 1fr}.kv-trp{grid-column:1/3}}
 .stat .v.ch-mat{font-size:.95rem;line-height:1.35}
 .stat .v.ch-mat small{font-family:var(--body);font-size:.72rem;color:var(--muted)}
+/* charms: game-style Governor Gear screen */
+.cg{display:grid;grid-template-columns:84px minmax(0,1fr) 84px;gap:8px;align-items:center}
+.cg-side{display:grid;gap:10px}
+.cg-pc{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px 4px;border-radius:10px;background:var(--sunk);border:2px solid transparent;cursor:pointer;color:var(--ink);font:inherit}
+.cg-pc:hover{border-color:var(--line)}
+.cg-pc.on{border-color:var(--ember);background:var(--ember-soft)}
+.cg-gear{width:52px;height:52px;object-fit:contain}
+.cg-mini{display:flex;gap:1px}
+.cg-mini img{width:17px;height:17px;object-fit:contain}
+.cg-mini img.off,.cg-ch img.off{filter:grayscale(1);opacity:.35}
+.cg-lvs{font-family:var(--mono);font-size:.62rem;color:var(--muted);white-space:nowrap}
+.cg-mid{text-align:center;min-width:0}
+.cg-name{margin:0 0 2px;font-size:.85rem}
+.cg-name b{margin-right:4px}
+.cg-ring{position:relative;width:100%;max-width:250px;aspect-ratio:1;margin:0 auto}
+.cg-ring::before{content:"";position:absolute;inset:18%;border-radius:50%;border:6px solid var(--line)}
+.cg-ch{position:absolute;display:flex;flex-direction:column;align-items:center;gap:3px;transform:translate(-50%,-50%);width:86px}
+.cg-ch.k0{left:50%;top:17%}.cg-ch.k1{left:22%;top:70%}.cg-ch.k2{left:78%;top:70%}
+.cg-chb{width:58px;height:58px;border-radius:50%;padding:5px;background:var(--panel);border:2px solid var(--line);cursor:pointer}
+.cg-chb img{width:100%;height:100%;object-fit:contain;display:block}
+.cg-ch.on .cg-chb{border-color:var(--ember);box-shadow:0 0 0 3px var(--ember-soft)}
+.cg-ch select{width:100%;max-width:86px;font-size:.74rem;padding:2px 0 2px 5px}
+.cg-det{margin-top:10px;background:var(--sunk);border-radius:10px;padding:10px 12px;text-align:center}
+.cg-title{margin:0 0 8px;font-size:.9rem}
+.cg-bar{display:flex;gap:3px;justify-content:center}
+.cg-bar button{width:40px;height:12px;border-radius:3px;padding:0;background:var(--line);border:0;cursor:pointer}
+.cg-bar button.on{background:var(--good)}
+.cg-bar button:disabled{cursor:default;opacity:.6}
+.cg-sub{margin:4px 0 8px;font-size:.78rem;color:var(--muted)}
+.cg-pw{font-family:var(--mono);font-size:.9rem;margin-bottom:6px}
+.cg-det .up{color:var(--good)}
+.cg-st{width:auto;margin:0 auto 6px;border-collapse:collapse;font-size:.86rem}
+.cg-st td{padding:2px 6px;border:0;text-align:right;font-family:var(--mono)}
+.cg-st td:first-child{text-align:left;font-family:var(--body)}
+.cg-cost{display:flex;flex-wrap:wrap;gap:4px 14px;justify-content:center;align-items:baseline;font-family:var(--mono);font-size:.84rem}
+.cg-cost .short{color:var(--red)}
+@media (max-width:520px){.cg{grid-template-columns:64px minmax(0,1fr) 64px;gap:4px}.cg-gear{width:42px;height:42px}.cg-mini img{width:14px;height:14px}
+  .cg-ch{width:70px}.cg-chb{width:46px;height:46px;padding:3px}.cg-ch select{font-size:.68rem;padding:2px 0 2px 2px}.cg-bar button{width:30px}}
