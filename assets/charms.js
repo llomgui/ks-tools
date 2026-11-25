@@ -42,7 +42,7 @@ function drawCharms(){
     el.querySelector('button').setAttribute('aria-label',`Show ${pc.n} charm ${k+1}`);});
   const i=selP*3+selC,p=st.cur[i],{l,s}=C.lvAt(p),T=C.TROOP[pc.t],now=C.CUM[p];
   const staged=l>=C.STEP_L&&l<C.MAXL;
-  const bar=staged?`<div class="cg-bar" role="group" aria-label="Stage toward Lv ${l+1}">${[1,2,3,4,5].map(j=>`<button type="button" data-s="${j}" class="${j<=s?'on':''}" ${j===5?'disabled':''} aria-label="${j} of 5"></button>`).join('')}</div>
+  const bar=staged?`<div class="cg-bar" role="group" aria-label="Stage toward Lv ${l+1}">${[1,2,3,4,5].map(j=>`<button type="button" data-s="${j-1}" class="${j<=s+1?'on':''}" aria-label="${j-1} of 5 done"></button>`).join('')}</div>
     <p class="cg-sub">Lv ${l} · ${s}/5 toward Lv ${l+1}: click the bar to set it</p>`:'';
   let rows;
   if(p>=C.PMAX)rows=`<p class="cg-sub">Max level. ${T} Lethality and Health +${now.stat.toFixed(2)}%</p>`;
@@ -120,7 +120,7 @@ $('pieces').addEventListener('click',e=>{
   const pb=e.target.closest('.cg-pc');if(pb){selP=+pb.dataset.p;selC=0;drawCharms();return;}
   const cb=e.target.closest('.cg-chb');if(cb){selC=+cb.dataset.k;drawCharms();return;}
   const sb=e.target.closest('.cg-bar button');if(sb){const i=selP*3+selC,{l,s}=C.lvAt(st.cur[i]),j=+sb.dataset.s;
-    st.cur[i]=C.posOf(l,j===s?j-1:j);mine();drawCharms();render();}});
+    st.cur[i]=C.posOf(l,j);mine();drawCharms();render();}});
 [['r-g','g'],['r-d','d'],['r-tp','tp']].forEach(([id,k])=>$(id).addEventListener('input',()=>{st[k]=Math.max(0,Math.floor(+$(id).value||0));mine();render();}));
 $('r-x').addEventListener('change',()=>{st.x=+$('r-x').value;mine();render();});
 $('mode').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;st.m=b.dataset.m;mine();writeInputs();render();});

@@ -109,12 +109,51 @@ function optimize(st){
 /* ---------- UI: piece rows ---------- */
 const lvOptions='<option value="-1">Not owned</option>'+LV.map((l,i)=>`<option value="${i}">${l.name}</option>`).join('');
 const stOptions=[0,1,2,3,4].map(s=>`<option value="${s}">${s}/5</option>`).join('');
-$('gv-pieces').innerHTML=ORDER.map(i=>[PIECES[i],i]).map(([pc,i])=>`<div class="gv-piece" id="gv-row-${i}">
-  <div class="gv-pn">${gearImg(pc.n,-1,'gv-img-'+i)}<span><b>${pc.n}</b><small>${TROOP[pc.t]}</small></span></div>
-  <div class="sel2">
-    <select id="gv-cl-${i}" aria-label="${pc.n} level">${lvOptions}</select>
-    <select id="gv-cs-${i}" class="st" aria-label="${pc.n} purchases toward next level">${stOptions}</select></div>
-</div>`).join('');
+/* laid out like the game's Governor Gear screen: pieces on both sides (Hood, Cloak, Ring on the left; Charmstone,
+   Breeches, Staff on the right), the picked piece in the middle with its level, and its stage bar, power, stats,
+   capacity and next enhancement cost below. Charms from the Charms page show under each piece. */
+let selG=2;   /* Hood */
+const gvBtn=i=>{const pc=PIECES[i];return `<button type="button" class="cg-pc gv-pcb" data-g="${i}" aria-label="${pc.n}, ${TROOP[pc.t]}">
+  <span class="gv-art"><img id="gv-side-${i}" alt=""><span class="gv-tier" id="gv-tier-${i}"></span></span><span class="cg-mini" id="gv-mini-${i}"></span></button>`;};
+$('gv-pieces').innerHTML=`<div class="cg gv-cg"><div class="cg-side">${[2,0,4].map(gvBtn).join('')}</div>
+  <div class="cg-mid">${PIECES.map((pc,i)=>`<div class="gv-piece gv-sel" id="gv-row-${i}"${i===selG?'':' hidden'}>
+    <p class="cg-name"><b>${pc.n}</b> ${TROOP[pc.t]}</p>
+    <div class="gv-big">${gearImg(pc.n,-1,'gv-img-'+i)}</div>
+    <div class="sel2">
+      <select id="gv-cl-${i}" aria-label="${pc.n} level">${lvOptions}</select>
+      <select id="gv-cs-${i}" class="st" aria-label="${pc.n} purchases toward next level">${stOptions}</select></div></div>`).join('')}</div>
+  <div class="cg-side">${[3,1,5].map(gvBtn).join('')}</div></div>
+  <div class="cg-det" id="gv-det"></div>`;
+const CHM=window.CH?(()=>{const c=CH.loadSaved();return c?c.cur:null;})():null;
+function drawGov(){
+  const ps=PIECES.map((_,i)=>getPos('gv-cl-'+i,'gv-cs-'+i));
+  PIECES.forEach((pc,i)=>{const {L}=lvAt(ps[i]);
+    const b=document.querySelector(`.gv-pcb[data-g="${i}"]`);b.classList.toggle('on',i===selG);b.setAttribute('aria-pressed',i===selG?'true':'false');
+    const im=$('gv-side-'+i);im.src=artSrc(pc.n,L);im.classList.toggle('off',L<0);
+    $('gv-tier-'+i).textContent=L>=0?tierOf(L):'';
+    $('gv-row-'+i).hidden=i!==selG;
+    const mini=$('gv-mini-'+i);
+    if(CHM){const ci=CH.PIECES.findIndex(x=>x.n===pc.n);mini.innerHTML=[0,1,2].map(k=>{const l=CH.lvAt(CHM[ci*3+k]).l;return `<img src="${CH.img(pc.t,l)}" alt=""${l?'':' class="off"'}>`;}).join('');}
+    else mini.innerHTML='';});
+  const i=selG,pc=PIECES[i],p=ps[i],{L,s}=lvAt(p),T=TROOP[pc.t];
+  let h=`<p class="cg-title">${pc.n} · <b>${L<0?'Not owned':LV[L].name}</b></p>`;
+  if(canStep(L))h+=`<div class="cg-bar" role="group" aria-label="Purchases toward the next level">${[1,2,3,4,5].map(j=>`<button type="button" data-s="${j-1}" class="${j<=s+1?'on':''}" aria-label="${j-1} of 5 done"></button>`).join('')}</div>
+    <p class="cg-sub">${s}/5 toward ${LV[L+1].name}: click the bar to set it</p>`;
+  if(p>=PMAX)h+=`<p class="cg-sub">Max level. ${T} Attack and Defense +${STAT[p].toFixed(2)}%</p>`;
+  else{const c={satin:CUM[p+1].satin-CUM[p].satin,gt:CUM[p+1].gt-CUM[p].gt,av:CUM[p+1].av-CUM[p].av},inv=readInv(),sh=(a,b)=>a>=b?'':' class="short"';
+    h+=`<div class="cg-pw">Power <b>${fmt(STAT[p]*24000)}</b> <span class="up">+${fmt((STAT[p+1]-STAT[p])*24000)}</span></div>
+    <table class="cg-st"><tbody><tr><td>${T} Attack</td><td>+${STAT[p].toFixed(2)}%</td><td>→</td><td class="up">+${STAT[p+1].toFixed(2)}%</td></tr>
+      <tr><td>${T} Defense</td><td>+${STAT[p].toFixed(2)}%</td><td>→</td><td class="up">+${STAT[p+1].toFixed(2)}%</td></tr>
+      ${CAP[p+1]>0?`<tr><td>Troops Deployment Capacity</td><td>+${fmt(CAP[p])}</td><td>→</td><td class="up">+${fmt(CAP[p+1])}</td></tr>`:''}</tbody></table>
+    <div class="cg-cost"><span class="label">${p===0?'Craft cost':'Enhancement cost'}</span><span${sh(inv.satin,c.satin)}>Satin ${fmt(inv.satin)}/${fmt(c.satin)}</span><span${sh(inv.gt,c.gt)}>Threads ${fmt(inv.gt)}/${fmt(c.gt)}</span>${c.av?`<span${sh(inv.av,c.av)}>Vision ${fmt(inv.av)}/${fmt(c.av)}</span>`:''}</div>`;}
+  $('gv-det').innerHTML=h;}
+function readInv(){return {satin:+$('gv-satin').value||0,gt:+$('gv-gt').value||0,av:+$('gv-av').value||0};}
+$('gv-pieces').addEventListener('click',e=>{
+  const b=e.target.closest('.gv-pcb');if(b){selG=+b.dataset.g;drawGov();return;}
+  const sb=e.target.closest('.cg-bar button');if(sb){const i=selG,{L}=lvAt(getPos('gv-cl-'+i,'gv-cs-'+i));$('gv-cs-'+i).value=sb.dataset.s;
+    $('gv-cs-'+i).dispatchEvent(new Event('change',{bubbles:true}));}});
+$('gv-pieces').addEventListener('change',()=>drawGov());
+
 
 const canStep=L=>L>=STEP_LV-1&&L<N-1;
 function setPos(lvId,stId,p){const {L,s}=lvAt(p);$(lvId).value=String(L);$(stId).value=String(s);$(stId).disabled=!canStep(L);}
@@ -444,7 +483,7 @@ function render(){
   renderWeights(st);renderPlan(eff);renderCards(eff);renderMaterials(eff,st.inv,packs);renderWhy(eff);renderCart(parts);renderShop(st,parts);showAcct(st);
   if(document.activeElement!==$('gv-code'))$('gv-code').value=encodeGov(st);
   try{localStorage.setItem('hgp-gov-v1',JSON.stringify(st))}catch(e){}
-  setPending(false);
+  drawGov();setPending(false);
 }
 
 /* ---------- events ---------- */
@@ -506,7 +545,7 @@ $('gv-blank').addEventListener('click',()=>{
     b.textContent='Click again to clear everything';b.classList.add('danger');return;}
   clearTimeout(armed);armed=0;b.textContent='Start from blank';b.classList.remove('danger');
   writeState(BLANK());render();say('Cleared. Enter your materials and levels.','ok');});
-function jump(i){const row=$('gv-row-'+i);if(!row)return;
+function jump(i){selG=+i;drawGov();const row=$('gv-row-'+i);if(!row)return;
   row.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});
   row.classList.remove('flash');void row.offsetWidth;row.classList.add('flash');
   setTimeout(()=>$('gv-cl-'+i).focus({preventScroll:true}),350);}
