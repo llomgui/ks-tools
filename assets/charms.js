@@ -6,7 +6,7 @@ const big=n=>n>=1e4?(+(n/1e3).toFixed(n>=1e5?0:1))+'K':fmt(n);
 const pct=n=>(+n.toFixed(2)).toString();
 
 /* ---------- state ---------- */
-const EXAMPLE={cur:[11,11,10,9,9,9, 10,10,10,8,8,8, 9,9,9,7,7,7].map(l=>C.posOf(l,0)),g:2400,d:3100,f:'all',m:'stats',tp:0,x:0};
+const EXAMPLE={cur:[11,11,10,9,9,9, 10,10,10,8,8,8, 9,9,9,7,7,7].map(l=>C.posOf(l,0)),g:2400,d:3100,m:'stats',tp:0,x:0};
 let st=C.loadSaved(),isExample=false;
 if(!st){st=C.clean(EXAMPLE);isExample=true;}
 const save=()=>{if(isExample)return;try{localStorage.setItem(C.KEY,JSON.stringify(st))}catch(e){}};
@@ -25,9 +25,11 @@ function writeInputs(){
   $('r-g').value=st.g||'';$('r-d').value=st.d||'';$('r-x').value=st.x;$('r-tp').value=st.tp||'';
   document.querySelectorAll('#mode button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.m===st.m?'true':'false'));
   $('tp-box').hidden=st.m!=='score';
-  $('focus').classList.toggle('dim',st.m==='score');$('focus-foot').hidden=st.m==='score';
-  $('mode-foot').textContent=st.m==='score'?'Picks by Charm Score (70 KvK points each). It often pushes a few charms very high: good for points, not the best for your account. Troop priority is ignored.':'Picks the upgrades that add the most Lethality and Health for your materials.';
-  document.querySelectorAll('#focus button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.f===st.f?'true':'false'));
+  $('wt-box').classList.toggle('dim',st.m==='score');
+  $('mode-foot').textContent=st.m==='score'?'Picks by Charm Score (70 KvK points each). It often pushes a few charms very high: good for points, not the best for your account. Formations are ignored.':'Picks the upgrades that add the most Lethality and Health for your materials.';
+  $('w-prof').value=st.prof;$('w-for').value=st.for;$('w-mix').value=st.mix;
+  ['I','C','A'].forEach(t=>{$('fa-'+t).value=st.att[t];$('fd-'+t).value=st.def[t];});
+  $('mixf').hidden=st.for!=='mix';
   document.querySelectorAll('.ch-row').forEach(r=>{const i=+r.dataset.i,{l,s}=C.lvAt(st.cur[i]);
     r.querySelector('.lv').innerHTML=lvOpts(l);const so=r.querySelector('.st');so.innerHTML=stOpts(l,s);so.disabled=!(l>=C.STEP_L&&l<C.MAXL);
     const ic=r.querySelector('.ch-ic');ic.src=C.img(C.troopOf(i),l);ic.classList.toggle('off',l===0);});}
@@ -40,6 +42,12 @@ function tile(i,from,to){
     <img src="${C.img(t,b.l)}" alt="" loading="lazy"><span class="ch-lv">${lbl(to)}</span></div>`;}
 function render(){
   plan=C.planFor(st);
+  const sumF=f=>f.I+f.C+f.A;
+  $('fs-att').textContent=sumF(st.att)===100?'':`Adds up to ${sumF(st.att)}%: read as shares`;
+  $('fs-def').textContent=sumF(st.def)===100?'':`Adds up to ${sumF(st.def)}%: read as shares`;
+  $('mix-o').textContent=`${st.mix}% attack · ${100-st.mix}% defense`;
+  const W=C.weightsOf(st),ws=W.I+W.C+W.A;
+  $('wout').innerHTML=ws>0?`Each % of charm bonus is worth: ${['I','C','A'].map(t=>`<b>${C.TROOP[t]} ${Math.round(W[t]/ws*100)}%</b>`).join(' · ')}`:'All your formations are 0%: add troops.';
   const pts=Math.round(plan.score*C.KVK_PTS),ug=st.g-plan.left.g,ud=st.d-plan.left.d;
   $('s-pw').textContent=plan.power?'+'+fmt(plan.power):'—';$('s-pw2').textContent=plan.steps.length?`${plan.steps.reduce((a,s)=>a+s.to-s.from,0)} upgrades`:'';
   $('s-kvk').textContent=pts?fmt(pts):'—';$('s-kvk2').textContent=plan.score?`Charm Score +${fmt(plan.score)}`:'';
@@ -82,7 +90,10 @@ $('app-ch').addEventListener('change',e=>{
 [['r-g','g'],['r-d','d'],['r-tp','tp']].forEach(([id,k])=>$(id).addEventListener('input',()=>{st[k]=Math.max(0,Math.floor(+$(id).value||0));mine();render();}));
 $('r-x').addEventListener('change',()=>{st.x=+$('r-x').value;mine();render();});
 $('mode').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;st.m=b.dataset.m;mine();writeInputs();render();});
-$('focus').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;st.f=b.dataset.f;mine();writeInputs();render();});
+$('w-prof').addEventListener('change',()=>{st.prof=$('w-prof').value;mine();render();});
+$('w-for').addEventListener('change',()=>{st.for=$('w-for').value;mine();writeInputs();render();});
+$('w-mix').addEventListener('input',()=>{st.mix=+$('w-mix').value;mine();render();});
+document.querySelectorAll('[data-w]').forEach(el=>el.addEventListener('input',()=>{st[el.dataset.w][el.dataset.t]=Math.max(0,Math.min(100,+el.value||0));mine();render();}));
 $('all-go').addEventListener('click',()=>{const l=+$('all-l').value;st.cur=st.cur.map(()=>C.posOf(l,0));mine();writeInputs();render();});
 $('more').addEventListener('click',()=>{showAll=!showAll;render();});
 function load(o,msg){st=o;isExample=false;writeInputs();render();say(msg,'ok');}

@@ -438,7 +438,7 @@ body.is-updating .upd{display:inline-block;animation:upd 1s ease-in-out infinite
 .ch-gain{background:var(--sunk);border-radius:8px;padding:8px 10px;min-width:0}
 .ch-gain b{display:block;font-family:var(--mono);font-weight:500;font-size:.9rem}
 .ch-gain b.no{color:var(--muted)}
-.seg.dim{opacity:.45}
+.seg.dim,.ch-wt.dim{opacity:.45}
 .ch-gain.up b{color:var(--good)}
 .ch-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:10px}
 .ch-tp{background:var(--sunk);border-radius:8px;padding:8px}

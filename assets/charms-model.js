@@ -78,14 +78,30 @@ function gains(a,b){
   for(let i=0;i<N;i++){stat[troopOf(i)]+=CUM[b[i]].stat-CUM[a[i]].stat;ev+=CUM[b[i]].ev-CUM[a[i]].ev;pw+=CUM[b[i]].pw-CUM[a[i]].pw;}
   return {stat,score:ev,power:pw};}
 
-/* troop priority: the focused troop counts 1.4× (Kingshot Optimizer keeps priorities within about 1.4×,
-   so cheap upgrades on the other troops still get picked) */
-const weightsFor=f=>f==='all'?{I:1,C:1,A:1}:{I:f==='I'?1.4:1,C:f==='C'?1.4:1,A:f==='A'?1.4:1};
+/* troop weights: same method as the Hero Gear and Governor Gear pages. Each troop's Lethality + Health weight
+   from the build profile, scaled by its share of the formation (profiles assume 50/20/30); attack and defense
+   formations blended by how your fights split. */
+const PROF={growth:{I:[1.5,0.7],C:[0.2,0.4],A:[0.7,1.4]},combat:{I:[1.5,0.7],C:[0.4,1.2],A:[0.6,1.3]},
+  gen4:{I:[1.5,1.1],C:[0.4,1.2],A:[0.6,1.2]},flat:{I:[1,1],C:[1,1],A:[1,1]}};
+const BASE={I:50,C:20,A:30};
+function formW(prof,f){const P=PROF[prof]||PROF.gen4,sum=f.I+f.C+f.A,W={};
+  for(const t of ['I','C','A'])W[t]=(P[t][0]+P[t][1])*(sum>0?f[t]*100/sum:BASE[t])/BASE[t];return W;}
+function weightsOf(st){const a=formW(st.prof,st.att),d=formW(st.prof,st.def);
+  if(st.for==='att')return a;if(st.for==='def')return d;
+  const m=st.mix/100;return {I:a.I*m+d.I*(1-m),C:a.C*m+d.C*(1-m),A:a.A*m+d.A*(1-m)};}
+/* start from the Hero Gear page's settings, so every page agrees */
+function heroDefaults(){
+  const d={prof:'gen4',att:{I:50,C:20,A:30},def:{I:60,C:40,A:0},mix:70,for:'mix'};
+  try{const h=JSON.parse(localStorage.getItem('hgp-state-v3')||'null');
+    if(h){if(PROF[h.profile])d.prof=h.profile;
+      if(h.form){const f=h.form;if(f.att)d.att={I:+f.att[0]||0,C:+f.att[1]||0,A:+f.att[2]||0};if(f.def)d.def={I:+f.def[0]||0,C:+f.def[1]||0,A:+f.def[2]||0};if(f.mix!=null)d.mix=+f.mix;}
+      if(['att','def','mix'].includes(h.planFor))d.for=h.planFor;}}catch(e){}
+  return d;}
 /* the plan for a saved or edited state */
-const planFor=st=>optimize(st.cur,st,{w:weightsFor(st.f),mode:st.m,x:st.x,goal:st.m==='score'&&st.tp>0?st.tp/KVK_PTS:0});
+const planFor=st=>optimize(st.cur,st,{w:weightsOf(st),mode:st.m,x:st.x,goal:st.m==='score'&&st.tp>0?st.tp/KVK_PTS:0});
 
 /* KSC1 codes: charm positions, materials, focus, goal, points target, exchanges */
-function encode(st){return 'KSC1:'+btoa(JSON.stringify({c:st.cur,g:st.g,d:st.d,f:st.f,m:st.m,tp:st.tp,x:st.x})).replace(/=+$/,'');}
+function encode(st){return 'KSC1:'+btoa(JSON.stringify({c:st.cur,g:st.g,d:st.d,m:st.m,tp:st.tp,x:st.x,p:st.prof,a:st.att,df:st.def,mx:st.mix,fr:st.for})).replace(/=+$/,'');}
 function decode(txt){
   const raw=String(txt||'').trim().replace(/^.*#/,'');
   if(!/^KSC1:/i.test(raw))throw new Error('This is not a Charms code. It should start with KSC1:');
@@ -93,11 +109,15 @@ function decode(txt){
   return clean(o);}
 function clean(o){
   o=o||{};const c=Array.isArray(o.c)?o.c:Array.isArray(o.cur)?o.cur:[];
+  const h=heroDefaults(),fm=(v,dv)=>v&&typeof v==='object'?{I:Math.max(0,+v.I||0),C:Math.max(0,+v.C||0),A:Math.max(0,+v.A||0)}:{...dv};
+  const p=o.p||o.prof,a=o.a||o.att,df=o.df||o.def,mx=o.mx!=null?o.mx:o.mix,fr=o.fr||o.for;
   return {cur:Array.from({length:N},(_,i)=>Math.max(0,Math.min(PMAX,Math.floor(+c[i]||0)))),
-    g:Math.max(0,Math.floor(+o.g||0)),d:Math.max(0,Math.floor(+o.d||0)),f:['all','I','C','A'].includes(o.f)?o.f:'all',
-    m:o.m==='score'?'score':'stats',tp:Math.max(0,Math.floor(+o.tp||0)),x:[0,1,2].includes(+o.x)?+o.x:0};}
+    g:Math.max(0,Math.floor(+o.g||0)),d:Math.max(0,Math.floor(+o.d||0)),
+    m:o.m==='score'?'score':'stats',tp:Math.max(0,Math.floor(+o.tp||0)),x:[0,1,2].includes(+o.x)?+o.x:0,
+    prof:PROF[p]?p:h.prof,att:fm(a,h.att),def:fm(df,h.def),mix:mx!=null&&isFinite(+mx)?Math.max(0,Math.min(100,+mx)):h.mix,
+    for:['att','def','mix'].includes(fr)?fr:h.for};}
 const KEY='ks-charms-v1';
 function loadSaved(){try{const o=JSON.parse(localStorage.getItem(KEY)||'null');return o?clean(o):null;}catch(e){return null;}}
 
-window.CH={L,MAXL,STEP_L,PMAX,KVK_PTS,posOf,lvAt,lvName,buy,CUM,PIECES,TROOP,N,troopOf,img,optimize,planFor,gains,weightsFor,encode,decode,clean,KEY,loadSaved};
+window.CH={L,MAXL,STEP_L,PMAX,KVK_PTS,posOf,lvAt,lvName,buy,CUM,PIECES,TROOP,N,troopOf,img,optimize,planFor,gains,weightsOf,heroDefaults,encode,decode,clean,KEY,loadSaved};
 })();

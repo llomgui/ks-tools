@@ -67,11 +67,40 @@
           <label class="field"><span class="label">KvK points target</span><input id="r-tp" type="number" min="0" step="1000"><span class="hint">Optional: stop once reached</span></label>
         </div>
         <p class="foot" id="mode-foot"></p>
-        <h3 class="sub" style="margin-top:18px">Troop priority</h3>
-        <div class="seg" id="focus" role="group" aria-label="Troop focus">
-          <button type="button" data-f="all">All troops</button><button type="button" data-f="I">Infantry</button><button type="button" data-f="C">Cavalry</button><button type="button" data-f="A">Archer</button>
+        <h3 class="sub" style="margin-top:18px">Formations</h3>
+        <div class="ch-wt" id="wt-box">
+        <p class="foot" style="margin-top:0">Same as the Hero Gear page: the troops you field decide what each charm is worth. Filled in from your Hero Gear page.</p>
+        <div class="res">
+          <label class="field"><span class="label">Build profile</span>
+            <select id="w-prof">
+              <option value="growth">Early Game Growth (PvE)</option>
+              <option value="combat">Early Game Combat (PvP 50/20/30)</option>
+              <option value="gen4">Future-proofed (gen 4+)</option>
+              <option value="flat">Unweighted</option>
+            </select></label>
+          <label class="field"><span class="label">Plan for</span>
+            <select id="w-for">
+              <option value="att">Attack rally</option>
+              <option value="def">Defense</option>
+              <option value="mix">A mix of both</option>
+            </select></label>
         </div>
-        <p class="foot" id="focus-foot">With a troop picked, its charms count 1.4 times as much as the others, so cheap upgrades on the other troops still come first.</p>
+        <div class="forms" style="margin-top:12px">
+          <fieldset><legend class="label">Attack rally</legend>
+            <div class="fr"><label class="field"><span class="label">Inf %</span><input id="fa-I" data-w="att" data-t="I" type="number" min="0" max="100"></label>
+            <label class="field"><span class="label">Cav %</span><input id="fa-C" data-w="att" data-t="C" type="number" min="0" max="100"></label>
+            <label class="field"><span class="label">Arch %</span><input id="fa-A" data-w="att" data-t="A" type="number" min="0" max="100"></label></div>
+            <small class="fs" id="fs-att"></small></fieldset>
+          <fieldset><legend class="label">Defense</legend>
+            <div class="fr"><label class="field"><span class="label">Inf %</span><input id="fd-I" data-w="def" data-t="I" type="number" min="0" max="100"></label>
+            <label class="field"><span class="label">Cav %</span><input id="fd-C" data-w="def" data-t="C" type="number" min="0" max="100"></label>
+            <label class="field"><span class="label">Arch %</span><input id="fd-A" data-w="def" data-t="A" type="number" min="0" max="100"></label></div>
+            <small class="fs" id="fs-def"></small></fieldset>
+        </div>
+        <label class="field mixf" id="mixf"><span class="label">Mix: how your fights split</span>
+          <input id="w-mix" type="range" min="0" max="100" step="5"><span class="mixo" id="mix-o"></span></label>
+        <p class="gv-wout" id="wout"></p>
+        </div>
       </section>
 
       <section class="panel" aria-labelledby="h-ch">
