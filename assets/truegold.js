@@ -47,7 +47,7 @@ function maxTTG(W,budget){if(W<=0||budget<=0)return 0;let best=0;
 const EXAMPLE={cur:{TC:'TG 2',EM:'TG 2',CC:'TG 1',IN:'TG 1',BA:'TG 2',ST:'TG 2',RA:'TG 2',WA:'TG 1'},goal:{TC:'TG 5'},
   tg:600,ttg:0,inc:30,speed:60,bld:2,spd:0,wolf:0,min:0,gw:0,dt:0,kvk:0,open:'',by:'',qlvl:'TG 5'};
 function fromLabels(o){
-  const st={cur:{},goal:{},tg:+o.tg||0,ttg:+o.ttg||0,inc:+o.inc||0,speed:+o.speed||0,bld:Math.max(1,Math.min(4,+o.bld||1)),spd:Math.max(0,+o.spd||0),
+  const st={cur:{},goal:{},tg:+o.tg||0,ttg:+o.ttg||0,inc:+o.inc||0,speed:+o.speed||0,bld:Math.max(1,Math.min(2,+o.bld||1)),spd:Math.max(0,+o.spd||0),
     wolf:[0,5,7,9,12,15].includes(+o.wolf)?+o.wolf:0,min:[0,10,15].includes(+o.min)?+o.min:0,gw:+o.gw===10?10:0,dt:+o.dt?1:0,kvk:+o.kvk===5?5:0,
     open:isISO(o.open)?o.open:'',by:isISO(o.by)?o.by:'',qlvl:/^TG [1-8]$/.test(o.qlvl)?o.qlvl:'TG 8'};
   if(st.min===15)st.kvk=0;
@@ -273,8 +273,8 @@ $('blds').addEventListener('change',e=>{const s=e.target;
     if(on>=0){QG=quickGoals();KS.forEach(k2=>st.goal[k2]=QG[on].g[k2]);}}
   else if(s.dataset.goal){st.goal[s.dataset.goal]=+s.value;}
   render();});
-[['r-tg','tg'],['r-ttg','ttg'],['r-inc','inc'],['r-speed','speed'],['r-bld','bld'],['r-spd','spd']].forEach(([id,k])=>$(id).addEventListener('input',()=>{
-  let v=Math.max(0,Number($(id).value)||0);if(k==='bld')v=Math.max(1,Math.min(4,Math.floor(v)));if(k!=='inc'&&k!=='spd')v=Math.floor(v);st[k]=v;render();}));
+[['r-tg','tg'],['r-ttg','ttg'],['r-inc','inc'],['r-speed','speed'],['r-bld','bld'],['r-spd','spd']].forEach(([id,k])=>$(id).addEventListener(id==='r-bld'?'change':'input',()=>{
+  let v=Math.max(0,Number($(id).value)||0);if(k==='bld')v=Math.max(1,Math.min(2,Math.floor(v)));if(k!=='inc'&&k!=='spd')v=Math.floor(v);st[k]=v;render();}));
 [['b-wolf','wolf'],['b-min','min'],['b-gw','gw'],['b-dt','dt'],['b-kvk','kvk']].forEach(([id,k])=>$(id).addEventListener('change',()=>{
   st[k]=+$(id).value;if(k==='min'&&st.min===15){st.kvk=0;$('b-kvk').value=0;}render();}));
 [['r-open','open'],['r-by','by']].forEach(([id,k])=>$(id).addEventListener('change',()=>{st[k]=isISO($(id).value)?$(id).value:'';render();}));

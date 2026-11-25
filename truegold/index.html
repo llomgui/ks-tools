@@ -18,7 +18,7 @@
 <div class="wrap">
   <nav class="sitenav" aria-label="Site">
     <a class="brand" href="../">KS <span>Tools</span></a>
-    <div class="apptabs"><a href="../hero-gear/">Hero Gear</a><a href="../reforge/">Reforge</a><a href="../truegold/" aria-current="page">Truegold</a><a href="../governor-gear/">Governor Gear</a></div>
+    <div class="apptabs"><a href="../hero-gear/">Hero Gear</a><a href="../reforge/">Reforge</a><a href="../truegold/" aria-current="page">Truegold</a><a href="../governor-gear/">Governor Gear</a><a href="../charms/">Charms</a><a href="../kvk/">KvK</a></div>
   </nav>
   <div id="app-tg">
   <header>
@@ -75,7 +75,7 @@
           <label class="field"><span class="label">Tempered Truegold</span><input id="r-ttg" type="number" min="0" step="1"></label>
           <label class="field"><span class="label">Truegold per day</span><input id="r-inc" type="number" min="0" step="0.5"><span class="hint">Crucible ≈ 10.5 · add missions, events</span></label>
           <label class="field"><span class="label">Construction speedups</span><input id="r-spd" type="number" min="0" step="1"><span class="hint">In days. Covering the build time makes every upgrade instant</span></label>
-          <label class="field"><span class="label">Builders</span><input id="r-bld" type="number" min="1" max="4" step="1"></label>
+          <label class="field"><span class="label">Builders</span><select id="r-bld"><option value="1">1</option><option value="2">2</option></select></label>
         </div>
         <h3 class="sub" style="margin-top:18px">Construction speed</h3>
         <div class="res tg-speed">
@@ -96,7 +96,7 @@
             <span class="hint" id="kvk-hint"></span></label>
         </div>
         <p class="foot" id="speed-sum"></p>
-        <p class="foot">Gray Wolf, Double Time and Minister only count for upgrades you <b>start</b> while they're active (5, 5 and 30 min). Pick them only if you'll start your upgrades in that window, ideally all at once.</p>
+        <p class="foot">Gray Wolf and Double Time last 5 min, Minister 30 min. Turn them on, then use all your construction speedups inside that window so every upgrade gets the bonus.</p>
       </section>
 
       <section class="panel" aria-labelledby="h-ttg">
@@ -142,7 +142,7 @@
         <details>
           <summary>How it's worked out</summary>
           <p>Costs, build times and requirements for every step from level 30 to TG 8 come from Kingshot Optimizer's building pages; the totals match kingshot.net (29,927 Truegold and 904 Tempered Truegold for all 8 buildings to TG 8). Academy level 30, needed for Town Center 30.1, is assumed done. Building icons are also from Kingshot Optimizer.</p>
-          <p>Build time = base time ÷ (1 + construction speed + Gray Wolf + Minister + Ground Works + KvK), then × 0.8 with Double Time, the same way as Kingshot Optimizer's building calculator. The planner applies the bonuses you pick to every step. Gray Wolf and Double Time last 5 minutes and Minister 30 minutes, and a bonus only counts for upgrades started while it's active, so pick them only if you start your upgrades in that window. Speedups are used for the whole goal: if they cover its total build time every upgrade is instant, otherwise each build is shortened by the same share. The schedule adds your daily Truegold every day and refines once a week (the opening week, then every Monday), from the day Super Refinement opens and your Town Center is TG 5, while your goal still needs Tempered Truegold. With a "Ready by" date it spreads refining evenly over the weeks left; the shortfall shown is against the most Tempered your Truegold can buy by then. Tempered Truegold uses the average result per refinement, so real luck will vary.</p>
+          <p>Build time = base time ÷ (1 + construction speed + Gray Wolf + Minister + Ground Works + KvK), then × 0.8 with Double Time, the same way as Kingshot Optimizer's building calculator. The planner applies the bonuses you pick to every step. Gray Wolf and Double Time last 5 minutes and Minister 30 minutes: activate them, then spend your construction speedups inside that window so every upgrade gets the bonus. Speedups are used for the whole goal: if they cover its total build time every upgrade is instant, otherwise each build is shortened by the same share. The schedule adds your daily Truegold every day and refines once a week (the opening week, then every Monday), from the day Super Refinement opens and your Town Center is TG 5, while your goal still needs Tempered Truegold. With a "Ready by" date it spreads refining evenly over the weeks left; the shortfall shown is against the most Tempered your Truegold can buy by then. Tempered Truegold uses the average result per refinement, so real luck will vary.</p>
           <p>Refinement prices and average results come from community guides (h5joy Kingshot guide); the 50% daily discount is applied to one refinement per day.</p>
         </details>
       </section>

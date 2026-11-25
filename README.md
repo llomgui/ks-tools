@@ -9,6 +9,8 @@ Free calculators for Kingshot players.
 | `/reforge/` | Hero gear reforge planner: list every piece you own, keep the best per troop and slot for your 3 main heroes, reforge the rest and spend the refunds |
 | `/truegold/` | Truegold planner: TG levels of the 8 Truegold buildings, Truegold / Tempered Truegold / time to a goal, Super Refinement plans |
 | `/governor-gear/` | Governor gear planner: Satin / Gilded Threads / Artisan's Vision, set bonuses, Master's Collection chest picks |
+| `/charms/` | Governor Charms planner: 18 charms, Charm Guides / Designs, Lethality and Health per troop, Charm Score and KvK points |
+| `/kvk/` | KvK preparation planner: backpack + imports from the other pages, what to use on each of the 5 days, milestones |
 
 ## Structure
 
@@ -18,6 +20,8 @@ hero-gear/index.html    hero gear planner
 reforge/index.html      hero gear reforge planner
 truegold/index.html     truegold planner
 governor-gear/index.html
+charms/index.html       governor charms planner
+kvk/index.html          KvK preparation planner
 assets/style.css        shared styles (light and dark theme)
 assets/hero-gear-model.js  hero gear data and optimizer (shared by hero-gear and reforge)
 assets/hero-gear.js
@@ -25,6 +29,10 @@ assets/reforge.js
 assets/truegold-data.js  building steps level 30 to TG8 (from Kingshot Optimizer)
 assets/truegold.js
 assets/governor-gear.js
+assets/governor-gear-data.js  governor gear levels + event score (shared with KvK)
+assets/charms-model.js   charm data + optimizer (shared by Charms and KvK, window.CH)
+assets/charms.js
+assets/kvk.js
 404.html
 .nojekyll               serve files as-is on GitHub Pages
 ```

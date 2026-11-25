@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kingshot Governor Charms Planner | KS Tools</title>
+<meta name="description" content="Free Kingshot Governor Charms calculator: enter your 18 charms and your Charm Guides and Charm Designs, get the best upgrade order, the Lethality and Health you gain and the KvK points it scores.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Kingshot Governor Charms Planner | KS Tools">
+<meta property="og:description" content="Free Kingshot Governor Charms calculator: enter your 18 charms and your Charm Guides and Charm Designs, get the best upgrade order, the Lethality and Health you gain and the KvK points it scores.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23b8430f'/%3E%3Cpath d='M9 22l9-12 2 2-9 12zM18 8l6 6' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <nav class="sitenav" aria-label="Site">
+    <a class="brand" href="../">KS <span>Tools</span></a>
+    <div class="apptabs"><a href="../hero-gear/">Hero Gear</a><a href="../reforge/">Reforge</a><a href="../truegold/">Truegold</a><a href="../governor-gear/">Governor Gear</a><a href="../charms/" aria-current="page">Charms</a><a href="../kvk/">KvK</a></div>
+  </nav>
+  <div id="app-ch">
+  <header>
+    <div>
+      <h1>Governor Charms Planner</h1>
+      <p class="lede">Enter the level of your 18 charms and your Charm Guides and Charm Designs. The planner gives the upgrade order that adds the most Lethality and Health, and the KvK points it scores.</p>
+    </div>
+  </header>
+  <p class="kvk-note" role="note"><b>Only during KvK preparation week.</b> Upgrade charms on KvK day 1, 3 or 4: every point of Charm Score is worth 70 KvK points.</p>
+
+  <section class="panel start" aria-labelledby="h-start">
+    <h2 id="h-start">Start here</h2>
+    <ol class="howto">
+      <li><b>Enter your Charm Guides and Charm Designs.</b></li>
+      <li><b>Set the level of each charm,</b> 3 per Governor Gear piece. The piece decides the troop type.</li>
+      <li><b>Follow the plan</b> during KvK preparation week, then add the points to the <a href="../kvk/">KvK planner</a>.</li>
+    </ol>
+    <label class="field"><span class="label">Your Charms code · updates as you edit</span>
+      <textarea id="code" spellcheck="false" placeholder="Paste a KSC1: code here, then press Import code"></textarea>
+    </label>
+    <div class="btns" style="margin-top:10px">
+      <button id="btn-import" type="button" class="primary">Import code</button>
+      <button id="btn-export" type="button">Copy my code</button>
+      <button id="btn-link" type="button">Copy link</button>
+      <button id="btn-example" type="button">Load example</button>
+    </div>
+    <p id="msg" class="msg" role="status"></p>
+  </section>
+
+  <div class="grid">
+    <div class="col">
+      <section class="panel" aria-labelledby="h-mat">
+        <h2 id="h-mat"><span class="stepn">1</span>Your materials</h2>
+        <div class="res">
+          <label class="field"><span class="label">Charm Guides</span><input id="r-g" type="number" min="0" step="1"></label>
+          <label class="field"><span class="label">Charm Designs</span><input id="r-d" type="number" min="0" step="1"><span class="hint">Usually the one you run out of</span></label>
+        </div>
+        <h3 class="sub" style="margin-top:18px">Focus</h3>
+        <div class="seg" id="focus" role="group" aria-label="Troop focus">
+          <button type="button" data-f="all">All troops</button><button type="button" data-f="I">Infantry</button><button type="button" data-f="C">Cavalry</button><button type="button" data-f="A">Archer</button>
+        </div>
+        <p class="foot">With a troop picked, its charms count 3 times as much as the others.</p>
+      </section>
+
+      <section class="panel" aria-labelledby="h-ch">
+        <h2 id="h-ch"><span class="stepn">2</span>Your charms</h2>
+        <p class="lede" style="margin:-6px 0 10px;font-size:.88rem">From Lv 5 on, each level takes 5 purchases, like the game: pick the stage (1/5 … 4/5) if you're part way.</p>
+        <div id="pieces"></div>
+        <div class="tg-setall">
+          <span class="label">Set every charm</span>
+          <select id="all-l" aria-label="Set every charm's level"></select>
+          <button type="button" id="all-go">Set all</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel results" aria-labelledby="h-plan">
+        <h2 id="h-plan">Your charm plan</h2>
+        <div class="summary">
+          <div class="stat"><div class="label">Charm Score</div><div class="v up" id="s-score">—</div><div class="tg-sub" id="s-score2"></div></div>
+          <div class="stat"><div class="label">Guides used</div><div class="v" id="s-g">—</div><div class="tg-sub" id="s-g2"></div></div>
+          <div class="stat"><div class="label">Designs used</div><div class="v" id="s-d">—</div><div class="tg-sub" id="s-d2"></div></div>
+        </div>
+        <div id="gains" class="ch-gains"></div>
+        <div id="tiles" class="ch-tiles"></div>
+        <h3 class="sub" id="steps-h">Upgrade order</h3>
+        <ol class="plan" id="steps"></ol>
+        <button type="button" id="more" hidden>Show all steps</button>
+        <div class="notes" id="notes"></div>
+        <details>
+          <summary>How it's worked out</summary>
+          <p>Costs, Lethality and Health per level and Charm Score come from Kingshot Optimizer's Governor Charms reference. Every charm gives its troop type the same bonus to both Lethality and Health; which slot it's in doesn't matter. Maxing one charm (Lv 1 → 22) takes 10,880 Charm Guides and 19,200 Charm Designs and gives +99%.</p>
+          <p>The plan buys one purchase at a time: the one that adds the most bonus per material, where each material is priced by how much of it you have. Charm Designs run out first for most players, so cheap-in-Designs levels come first.</p>
+          <p>KvK points: 70 per Charm Score on day 1 (City Construction), day 3 (Pet Training) and day 4 (Hero Development).</p>
+        </details>
+      </section>
+    </div>
+  </div>
+
+  <footer>Game data and charm art from <a href="https://kingshotoptimizer.com/charms/references/" target="_blank" rel="noopener">Kingshot Optimizer</a></footer>
+  </div>
+  <footer class="sitefoot"><span>KS Tools · free calculators for Kingshot players</span><span>Independent fan project, not affiliated with Kingshot or Century Games.</span></footer>
+</div>
+<script src="../assets/charms-model.js"></script>
+<script src="../assets/charms.js"></script>
+</body>
+</html>

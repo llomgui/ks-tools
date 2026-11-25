@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kingshot KvK Preparation Planner | KS Tools</title>
+<meta name="description" content="Free Kingshot KvK preparation week calculator: enter your backpack, import your gear, charms and Truegold plans, and see what to use on each of the 5 days to reach the most milestones.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Kingshot KvK Preparation Planner | KS Tools">
+<meta property="og:description" content="Free Kingshot KvK preparation week calculator: enter your backpack, import your gear, charms and Truegold plans, and see what to use on each of the 5 days to reach the most milestones.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23b8430f'/%3E%3Cpath d='M9 22l9-12 2 2-9 12zM18 8l6 6' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<div class="wrap">
+  <nav class="sitenav" aria-label="Site">
+    <a class="brand" href="../">KS <span>Tools</span></a>
+    <div class="apptabs"><a href="../hero-gear/">Hero Gear</a><a href="../reforge/">Reforge</a><a href="../truegold/">Truegold</a><a href="../governor-gear/">Governor Gear</a><a href="../charms/">Charms</a><a href="../kvk/" aria-current="page">KvK</a></div>
+  </nav>
+  <div id="app-kvk">
+  <header>
+    <div>
+      <h1>KvK Preparation Planner</h1>
+      <p class="lede">Enter what's in your backpack and bring in your gear, charms and Truegold plans. The planner shows what to use on each of the 5 preparation days so you reach as many milestones as possible.</p>
+    </div>
+  </header>
+
+  <section class="panel start" aria-labelledby="h-start">
+    <h2 id="h-start">Start here</h2>
+    <ol class="howto">
+      <li><b>Bring in your plans:</b> press <i>Use my KS Tools pages</i>, or paste codes from the Hero Gear (KGO:), Governor Gear (GOV:), Charms (KSC1:) or Truegold (KST1:) pages.</li>
+      <li><b>Fill in the rest of your backpack:</b> speedups, hero shards, pet items, troops.</li>
+      <li><b>Follow the day plan.</b> Keep everything until its day: nothing you use before the week starts counts.</li>
+    </ol>
+    <label class="field"><span class="label">Paste a code · KvK, Hero Gear, Governor Gear, Charms or Truegold</span>
+      <textarea id="code" spellcheck="false" placeholder="Paste a KSK1:, KGO:, GOV:, KSC1: or KST1: code, then press Import code"></textarea>
+    </label>
+    <div class="btns" style="margin-top:10px">
+      <button id="btn-pages" type="button" class="primary">Use my KS Tools pages</button>
+      <button id="btn-import" type="button">Import code</button>
+      <button id="btn-export" type="button">Copy my KvK code</button>
+      <button id="btn-link" type="button">Copy link</button>
+      <button id="btn-clear" type="button">Clear</button>
+    </div>
+    <p id="msg" class="msg" role="status"></p>
+    <div id="srcs" class="kv-srcs"></div>
+  </section>
+
+  <div class="grid">
+    <div class="col">
+      <section class="panel" aria-labelledby="h-bp">
+        <h2 id="h-bp"><span class="stepn">1</span>Your backpack</h2>
+        <p class="lede" style="margin:-6px 0 12px;font-size:.88rem">Only enter what you will really use during the week. Speedups are in days: 1 day = 1,440 minutes, 30 points a minute.</p>
+        <div id="groups"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-dt">
+        <h2 id="h-dt"><span class="stepn">2</span>Dates</h2>
+        <div class="res">
+          <label class="field"><span class="label">Preparation day 1</span><input id="r-start" type="date"><span class="hint">Optional: shows the date of each day</span></label>
+        </div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel results" aria-labelledby="h-plan">
+        <h2 id="h-plan">Your KvK week</h2>
+        <div class="summary">
+          <div class="stat"><div class="label">Points</div><div class="v up" id="s-pts">—</div><div class="tg-sub">over the 5 days</div></div>
+          <div class="stat"><div class="label">Milestones</div><div class="v" id="s-ms">—</div><div class="tg-sub">of 15</div></div>
+          <div class="stat"><div class="label">Best day</div><div class="v" id="s-best">—</div><div class="tg-sub" id="s-best2"></div></div>
+        </div>
+        <div id="days"></div>
+        <div class="notes" id="notes"></div>
+        <details>
+          <summary>Points per item and how the plan is made</summary>
+          <p>Items that score on several days (speedups, Truegold, Mithril, hero shards…) give the same points whichever day you use them. The planner first puts single-day items on their day, then spends the flexible ones to reach each day's first milestone, then the second, then the third, so as many milestones as possible are reached. What's left goes to the day with the fewest points.</p>
+          <div class="tbl"><table id="ptab"><thead><tr><th>Item</th><th class="r">Points</th><th>Days</th></tr></thead><tbody></tbody></table></div>
+          <p>Points and milestones come from Kingshot Optimizer's KvK event guide. Governor Gear Score is estimated from your Governor Gear page: the upgrades your materials buy, picked for the most score. Charm Score comes from your Charms page plan.</p>
+        </details>
+      </section>
+    </div>
+  </div>
+
+  <footer>Event data from <a href="https://kingshotoptimizer.com/events/kingdom-of-power/event-guide/" target="_blank" rel="noopener">Kingshot Optimizer's KvK event guide</a></footer>
+  </div>
+  <footer class="sitefoot"><span>KS Tools · free calculators for Kingshot players</span><span>Independent fan project, not affiliated with Kingshot or Century Games.</span></footer>
+</div>
+<script src="../assets/governor-gear-data.js"></script>
+<script src="../assets/charms-model.js"></script>
+<script src="../assets/kvk.js"></script>
+</body>
+</html>

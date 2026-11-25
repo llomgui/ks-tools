@@ -4,66 +4,9 @@ const fmt=n=>Math.round(n).toLocaleString('en-US');
 const pct=n=>(+n.toFixed(2)).toString();
 
 /* ---------- data (per piece; cost to reach the level from the one before) ---------- */
-const RAW=`Uncommon 0★|1500|15|0|9.35|2
-Uncommon 1★|3800|40|0|12.75|2.5
-Rare 0★|7000|70|0|17.00|3
-Rare 1★|9700|95|0|21.25|3.5
-Rare 2★|1000|10|45|25.50|4
-Rare 3★|1000|10|50|29.75|4.5
-Epic 0★|1500|15|60|34.00|5
-Epic 1★|1500|15|70|36.89|5
-Epic 2★|6500|65|40|39.78|5
-Epic 3★|8000|80|50|42.67|5
-Epic T1 0★|10000|95|60|45.56|6
-Epic T1 1★|11000|110|70|48.45|6
-Epic T1 2★|13000|130|85|51.34|6
-Epic T1 3★|15000|160|100|54.23|6
-Mythic 0★|22000|220|40|56.78|7
-Mythic 1★|23000|230|40|59.33|7
-Mythic 2★|25000|250|45|61.88|7
-Mythic 3★|26000|260|45|64.43|7
-Mythic T1 0★|28000|280|45|66.98|8
-Mythic T1 1★|30000|300|55|69.53|8
-Mythic T1 2★|32000|320|55|72.08|8
-Mythic T1 3★|35000|340|55|74.63|8
-Mythic T2 0★|38000|360|55|77.18|9
-Mythic T2 1★|43000|430|75|79.73|9
-Mythic T2 2★|45000|460|80|82.28|9
-Mythic T2 3★|48000|500|85|84.83|9
-Mythic T3 0★|60000|600|120|87.38|10
-Mythic T3 1★|70000|700|140|89.93|10
-Mythic T3 2★|80000|800|160|92.48|10
-Mythic T3 3★|90000|900|180|95.00|10
-Legendary 0★|108000|1080|220|97.50|12
-Legendary 1★|114000|1140|230|100.00|12
-Legendary 2★|121000|1210|240|102.50|12
-Legendary 3★|128000|1280|250|105.00|12
-Legendary T1 0★|154000|1540|300|107.50|14
-Legendary T1 1★|163000|1630|320|110.00|14
-Legendary T1 2★|173000|1730|340|112.50|14
-Legendary T1 3★|183000|1830|360|115.00|14
-Legendary T2 0★|220000|2200|430|117.50|16.5
-Legendary T2 1★|233000|2330|460|120.00|16.5
-Legendary T2 2★|247000|2470|490|122.50|16.5
-Legendary T2 3★|262000|2620|520|125.00|16.5
-Legendary T3 0★|288000|2880|570|127.75|19.5
-Legendary T3 1★|302000|3020|600|130.50|19.5
-Legendary T3 2★|317000|3170|630|133.25|19.5
-Legendary T3 3★|333000|3330|660|136.00|19.5
-Legendary T4 0★|366000|3660|730|138.75|23
-Legendary T4 1★|384000|3840|770|141.50|23
-Legendary T4 2★|403000|4030|810|144.25|23
-Legendary T4 3★|423000|4230|850|147.00|23
-Legendary T5 0★|465000|4650|940|150.00|26.5
-Legendary T5 1★|479000|4790|970|153.00|26.5
-Legendary T5 2★|493000|4930|1000|156.00|26.5
-Legendary T5 3★|508000|5080|1030|159.00|26.5
-Legendary T6 0★|549000|5490|1110|162.00|30
-Legendary T6 1★|565000|5650|1140|165.00|30
-Legendary T6 2★|582000|5820|1170|168.00|30
-Legendary T6 3★|599000|5990|1210|171.00|30`;
-const LV=RAW.split('\n').map(l=>{const [name,s,g,a,st,b]=l.split('|');
-  return {name,satin:+s,gt:+g,av:+a,stat:+st,set:+b,rar:name.split(' ')[0]};});
+const RAW=window.GOV_RAW;
+const LV=RAW.split('\n').map(l=>{const [name,s,g,a,st,b,ev]=l.split('|');
+  return {name,satin:+s,gt:+g,av:+a,stat:+st,set:+b,ev:+ev,rar:name.split(' ')[0]};});
 const N=LV.length;                       /* 58 levels */
 const STEP_LV=26;                        /* Mythic T3 0★: first level bought in 5 purchases */
 const PMAX=STEP_LV+5*(N-STEP_LV);        /* 186 purchases from nothing to Legendary T6 3★ */
