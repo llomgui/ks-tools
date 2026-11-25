@@ -219,7 +219,7 @@ function renderPlan(st){
   const inv=st.inv;plan=null;
   const stop=msg=>{sum.innerHTML=`<p>${msg}</p>`;list.innerHTML='';more.hidden=true;head.hidden=true;};
   if(!inv.satin&&!inv.gt&&!inv.av)return stop('Enter your materials in step 1 and your levels in step 2. The best way to spend them will appear here.');
-  if(st.w.I+st.w.C+st.w.A<=0)return stop('Your formations give every troop type 0%. Add at least one troop in step 3.');
+  if(st.w.I+st.w.C+st.w.A<=0)return stop('Your formations give every troop type 0%. Add at least one troop under Troop priorities in step 1.');
   const p=optimize(st);
   if(!p.steps.length)return stop("Your materials don't cover the next purchase on any piece yet.");
   plan=p;head.hidden=false;
@@ -485,7 +485,7 @@ document.querySelector('.gvtabs').addEventListener('keydown',e=>{const o=['maste
   if(e.key==='ArrowRight')i=(i+1)%3;else if(e.key==='ArrowLeft')i=(i+2)%3;else return;e.preventDefault();showShop(o[i],true);$('gvtab-'+o[i]).focus();});
 $('gv-import').addEventListener('click',()=>{
   try{const d=decodeGov($('gv-code').value);const st=readState();st.pieces=d.pieces;if(d.inv)st.inv=d.inv;st.isExample=false;
-    writeState(st);$('gv-code').blur();render();say('Imported. Check your troop priorities in step 3; they are not part of the code.','ok');}
+    writeState(st);$('gv-code').blur();render();say('Imported. Check your troop priorities in step 1; they are not part of the code.','ok');}
   catch(e){say('That code could not be read. Paste the full text starting with GOV:','err');}});
 $('gv-export').addEventListener('click',()=>{const code=encodeGov(readState());$('gv-code').value=code;
   const done=()=>say('Code copied. Anyone with this planner can paste it and press Import code.','ok');

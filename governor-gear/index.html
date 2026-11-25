@@ -35,8 +35,7 @@
       <span class="acct" id="gv-acct" role="status"></span>
     </div>
     <ol class="howto">
-      <li><b>Enter your materials and the level of each piece,</b> or paste a build code someone shared and press Import. Governor gear unlocks at Town Center 22. "Set all 6 pieces to" saves typing when most pieces share a level.</li>
-      <li><b>Check your troop priorities.</b> They start from your Hero Gear settings.</li>
+      <li><b>Enter your materials, check your troop priorities and set the level of each piece,</b> or paste a build code someone shared and press Import. Troop priorities start from your Hero Gear settings. Governor gear unlocks at Town Center 22. "Set all 6 pieces to" saves typing when most pieces share a level.</li>
       <li><b>Follow the plan</b> on the right: what to upgrade, in which order, and why.</li>
     </ol>
     <label class="field" style="margin-top:4px"><span class="label">Governor build code · updates as you edit</span>
@@ -63,22 +62,8 @@
         <label class="check"><input id="gv-exch" type="checkbox">
           <span>Use Material Exchange<small>Trade 5 Gilded Threads for 1 Artisan's Vision when Artisan's Vision runs short. The game limits how many trades you can make, so check how many are open to you.</small></span>
         </label>
-      </section>
-
-      <section class="panel" aria-labelledby="gv-h-pieces">
-        <h2 id="gv-h-pieces"><span class="stepn">2</span>Your governor gear</h2>
-        <p class="lede" style="margin:-6px 0 10px;font-size:.88rem">Enter the level each piece is at in game. From Mythic T3 0★ each level takes 5 purchases; "2/5" means 2 of the 5 are done.</p>
-        <div class="gv-all">
-          <span class="label">Set all 6 pieces to</span>
-          <div class="sel2"><select id="gv-all-l" aria-label="Level for all pieces"></select><select id="gv-all-s" class="st" aria-label="Purchases toward the next level"></select></div>
-          <div class="btns"><button id="gv-all-now" type="button" class="primary">Apply to all</button></div>
-        </div>
-        <div id="gv-pieces"></div>
-      </section>
-
-      <section class="panel" aria-labelledby="gv-h-pri">
-        <h2 id="gv-h-pri"><span class="stepn">3</span>Troop priorities</h2>
-        <p class="lede" style="margin:-6px 0 12px;font-size:.88rem">Uses the same weights as the Hero Gear tab: each troop's Health + Lethality weight from the build profile, scaled by how many of that troop you field. Governor gear boosts Attack and Defense, so both count. These start from your Hero Gear settings.</p>
+        <h3 class="sub" style="margin-top:18px">Troop priorities</h3>
+        <p class="lede" style="margin:0 0 12px;font-size:.88rem">Uses the same weights as the Hero Gear tab: each troop's Health + Lethality weight from the build profile, scaled by how many of that troop you field. Governor gear boosts Attack and Defense, so both count. These start from your Hero Gear settings.</p>
         <div class="opts" style="margin-top:0">
           <label class="field"><span class="label">Build profile</span>
             <select id="gv-prof">
@@ -109,6 +94,17 @@
         <label class="field mixf" id="gv-mixf"><span class="label">Mix: how your fights split</span>
           <input id="gv-mix" type="range" min="0" max="100" step="5"><span class="mixo" id="gv-mix-o"></span></label>
         <p class="gv-wout" id="gv-wout"></p>
+      </section>
+
+      <section class="panel" aria-labelledby="gv-h-pieces">
+        <h2 id="gv-h-pieces"><span class="stepn">2</span>Your governor gear</h2>
+        <p class="lede" style="margin:-6px 0 10px;font-size:.88rem">Enter the level each piece is at in game. From Mythic T3 0★ each level takes 5 purchases; "2/5" means 2 of the 5 are done.</p>
+        <div class="gv-all">
+          <span class="label">Set all 6 pieces to</span>
+          <div class="sel2"><select id="gv-all-l" aria-label="Level for all pieces"></select><select id="gv-all-s" class="st" aria-label="Purchases toward the next level"></select></div>
+          <div class="btns"><button id="gv-all-now" type="button" class="primary">Apply to all</button></div>
+        </div>
+        <div id="gv-pieces"></div>
       </section>
     </div>
 

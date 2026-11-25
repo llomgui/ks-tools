@@ -14,7 +14,7 @@ let showAll=false,plan=null;
 
 /* ---------- inputs ---------- */
 const lvOpts=sel=>Array.from({length:C.MAXL+1},(_,l)=>`<option value="${l}"${l===sel?' selected':''}>Lv ${l}</option>`).join('');
-const stOpts=(l,s)=>[0,1,2,3,4].map(k=>`<option value="${k}"${k===s?' selected':''}>${k?k+'/5':'—'}</option>`).join('');
+const stOpts=(l,s)=>[0,1,2,3,4].map(k=>`<option value="${k}"${k===s?' selected':''}>${k}/5</option>`).join('');
 function buildPieces(){
   $('pieces').innerHTML=C.PIECES.map((pc,pi)=>`<div class="ch-piece">
     <div class="ch-pn"><b>${pc.n}</b><small>${C.TROOP[pc.t]}</small></div>
