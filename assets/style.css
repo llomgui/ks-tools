@@ -624,3 +624,49 @@ body.is-updating .upd{display:inline-block;animation:upd 1s ease-in-out infinite
 .kv-day.past{opacity:.55}
 .kv-day.past .kv-now{color:var(--muted)}
 .acsw-menu{max-height:calc(100vh - 90px);overflow-y:auto}
+/* ---------- Map planner ---------- */
+.mp-panel{margin-top:20px;margin-bottom:20px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.mp-bar{display:flex;flex-direction:column;gap:8px}
+.mp-tools,.mp-bar2{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.mp-tools button,.mp-bar2 button,.mp-tools select{padding:6px 10px;font-size:.85rem}
+.mp-tools button[aria-pressed="true"],.mp-tools select[aria-pressed="true"]{background:var(--ember);border-color:var(--ember);color:var(--panel)}
+.mp-inl{display:inline-flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted)}
+.mp-inl select{padding:5px 8px;font-size:.85rem;max-width:180px}
+.mp-chk input{width:auto}
+.mp-go{display:inline-flex;gap:4px}
+.mp-go input{width:72px;padding:5px 8px;font-size:.85rem}
+.mp-canvas{position:relative;height:min(68vh,640px);min-height:320px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:var(--sunk)}
+.mp-canvas canvas{display:block;touch-action:none;cursor:grab}
+.mp-hover{margin:0;font-size:.8rem;color:var(--muted);font-family:var(--mono);min-height:1.2em}
+.mp-full{position:fixed;inset:0;z-index:50;margin:0;border-radius:0;padding:10px max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
+.mp-full .mp-canvas{flex:1;height:auto}
+body.mp-lock{overflow:hidden}
+.mp-empty,.mp-note{color:var(--muted);font-size:.88rem;margin:6px 0}
+.mp-kv{margin:0 0 10px}
+.mp-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+.mp-row .field{flex:1 1 120px}
+.mp-towns{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.mp-towns h3,.mp-grp h3{font-size:.95rem;margin:0 0 6px}
+.mp-al{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--line)}
+.mp-al input[type=color]{width:36px;height:32px;padding:2px;flex:none}
+.mp-al .mp-tag{width:70px;flex:none}
+.mp-al input[data-f=name]{flex:1 1 140px;min-width:0}
+.mp-cnt{font-size:.8rem;color:var(--muted)}
+.mp-al button{padding:5px 10px;font-size:.8rem}
+.mp-grp{margin-bottom:12px}
+.mp-grp h3 i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.mp-items{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.mp-item{width:100%;display:flex;justify-content:space-between;gap:8px;text-align:left;padding:4px 8px;font-size:.85rem;background:none;border:1px solid transparent}
+.mp-item span{font-family:var(--mono);color:var(--muted);font-size:.8rem}
+.mp-item.on{border-color:var(--ember);background:var(--ember-soft)}
+.mp-bad{color:var(--red);font-weight:700;margin-right:4px}
+.mp-grp summary{cursor:pointer;font-size:.85rem;color:var(--muted);padding:4px 0}
+.mp-rules summary{cursor:pointer;font-weight:600}
+.mp-rules ul{padding-left:18px;font-size:.88rem}
+.mp-rules p{font-size:.88rem;color:var(--muted)}
+.mp-tools select{width:auto}
+#tw-names{font-family:var(--body);font-size:.9rem;word-break:normal}
+.mp-colrow{align-items:center}
+.mp-colrow input[type=color]{width:40px;height:30px;padding:2px}
+.mp-colrow button{padding:5px 10px;font-size:.8rem}
+.mp-ex{width:auto;max-width:100%}

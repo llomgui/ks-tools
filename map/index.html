@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kingshot Alliance Map Planner | KS Tools</title>
+<meta name="description" content="Free Kingshot alliance map planner: place towns, alliance HQs, flags and Hunting Traps around the King's Castle, see your territory and share the plan with your alliance.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Kingshot Alliance Map Planner | KS Tools">
+<meta property="og:description" content="Free Kingshot alliance map planner: place towns, alliance HQs, flags and Hunting Traps around the King's Castle, see your territory and share the plan with your alliance.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23b8430f'/%3E%3Cpath d='M9 22l9-12 2 2-9 12zM18 8l6 6' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+<script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script>
+</head>
+<body>
+<div class="wrap">
+  <nav class="sitenav" aria-label="Site">
+    <a class="brand" href="../">KS <span>Tools</span></a>
+    <div class="apptabs"><a href="../hero-gear/">Hero Gear</a><a href="../reforge/">Reforge</a><a href="../truegold/">Truegold</a><a href="../governor-gear/">Governor Gear</a><a href="../charms/">Charms</a><a href="../kvk/">KvK</a><a href="../map/" aria-current="page">Map</a></div>
+  </nav>
+  <div id="app-map">
+  <header>
+    <div>
+      <h1>Alliance Map Planner</h1>
+      <p class="lede">Plan where your alliance builds around the King's Castle: HQs, flags, Hunting Traps and every member's town. The map checks the placement rules and shows your territory.</p>
+    </div>
+  </header>
+
+  <section class="panel start" aria-labelledby="h-start">
+    <h2 id="h-start">Start here</h2>
+    <ol class="howto">
+      <li><b>Already planned on kingshot.me?</b> Press <i>Export Map</i> there, then <i>Open kingshot.me file</i> here.</li>
+      <li><b>Build:</b> pick a building and click the map. HQs first, then flags to grow the territory, then Hunting Traps inside it. An alliance is ready; add more only if you plan for several.</li>
+      <li><b>Order your players:</b> select a trap or the castle, paste the player names strongest first and press <i>Arrange</i>: they fill a square around it, closest first. Drag a town onto another to swap them.</li>
+      <li><b>Share:</b> copy the code or link and post it in your alliance chat. Opening it loads the whole map.</li>
+    </ol>
+    <label class="field"><span class="label">Paste a map code</span>
+      <textarea id="code" spellcheck="false" placeholder="Paste a KSM1: code (or a kingshot.me map JSON), then press Import code"></textarea>
+    </label>
+    <div class="btns" style="margin-top:10px">
+      <select id="ex" aria-label="Examples" class="mp-ex"></select>
+      <button id="btn-import" type="button">Import code</button>
+      <button id="btn-kme" type="button">Open kingshot.me file</button><input id="kme-file" type="file" accept=".json,application/json" hidden>
+      <button id="btn-export" type="button" class="primary">Copy map code</button>
+      <button id="btn-link" type="button">Copy link</button>
+      <button id="btn-png" type="button">Download picture</button>
+      <button id="btn-clear" type="button">Reset</button>
+    </div>
+    <p id="msg" class="msg" role="status"></p>
+  </section>
+
+  <section class="panel mp-panel" id="mp-box" aria-label="Map">
+    <div class="mp-bar">
+      <div class="mp-tools" id="tools" role="toolbar" aria-label="Building"></div>
+      <div class="mp-bar2">
+        <label class="mp-inl">Alliance <select id="active-al"></select></label>
+        <button id="btn-undo" type="button" title="Undo (Ctrl+Z)">Undo</button>
+        <label class="mp-inl mp-chk"><input id="ignore" type="checkbox"> Ignore rules</label>
+        <span class="mp-go"><input id="go-x" type="number" min="0" max="1199" placeholder="X" aria-label="X"><input id="go-y" type="number" min="0" max="1199" placeholder="Y" aria-label="Y"><button id="btn-go" type="button">Go</button></span>
+        <button id="btn-castle" type="button" title="Center on the castle">Castle</button>
+        <button id="btn-zin" type="button" aria-label="Zoom in">+</button><button id="btn-zout" type="button" aria-label="Zoom out">−</button>
+        <button id="btn-full" type="button">Full screen</button>
+      </div>
+    </div>
+    <div class="mp-canvas" id="wrap"><canvas id="map" aria-label="Kingdom map"></canvas></div>
+    <p id="hover" class="mp-hover">Drag to move the map, scroll or pinch to zoom.</p>
+  </section>
+
+  <div class="grid">
+    <div class="col">
+      <section class="panel" aria-labelledby="h-sel">
+        <h2 id="h-sel">Selected</h2>
+        <div id="sel"><p class="mp-empty">Click a building on the map (with <i>Select</i>) to edit it.</p></div>
+      </section>
+    </div>
+    <div class="col">
+      <section class="panel" aria-labelledby="h-al">
+        <h2 id="h-al">Alliances</h2>
+        <div id="als"></div>
+        <div class="btns" style="margin-top:10px"><button id="btn-al-add" type="button">Add alliance</button></div>
+      </section>
+      <section class="panel" aria-labelledby="h-list" style="margin-top:20px">
+        <h2 id="h-list">Buildings</h2>
+        <div id="list"></div>
+      </section>
+      <section class="panel" style="margin-top:20px">
+        <details class="mp-rules">
+          <summary>Placement rules used</summary>
+          <ul>
+            <li>Town 2×2. Alliance HQ, Hunting Trap and Great buildings 3×3, flag 1×1.</li>
+            <li>An HQ claims 15×15 tiles around it, a flag 7×7. Plain HQ only on plain, Wilderness HQ only on badland (outside the plain).</li>
+            <li>A flag's area must touch your territory. Traps and Great buildings must be fully on your territory.</li>
+            <li>One of each HQ and trap, and one Great building per alliance.</li>
+            <li>Nothing is built in the castle area (X/Y 594 to 605). Towns can stand in the forbidden ring (586 to 613) and the ruins (552 to 647), alliance buildings can't. Territory doesn't cover any of them.</li>
+            <li>Tiles already claimed stay with whoever claimed them first.</li>
+          </ul>
+          <p>Mountains, water and outposts are not on this map: check those in the game.</p>
+        </details>
+      </section>
+    </div>
+  </div>
+  </div>
+  <footer class="sitefoot"><span>KS Tools · free calculators for Kingshot players</span><span>Independent fan project, not affiliated with Kingshot or Century Games.</span></footer>
+</div>
+<script src="../assets/common.js"></script>
+<script src="../assets/jeabslist.js"></script>
+<script src="../assets/accounts.js"></script>
+<script src="../assets/map-examples.js"></script>
+<script src="../assets/map.js"></script>
+</body>
+</html>

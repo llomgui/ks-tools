@@ -11,6 +11,7 @@ Free calculators for Kingshot players.
 | `/governor-gear/` | Governor gear planner: Satin / Gilded Threads / Artisan's Vision, set bonuses, Master's Collection chest picks |
 | `/charms/` | Governor Charms planner: 18 charms, Charm Guides / Designs, Lethality and Health per troop, Charm Score and KvK points |
 | `/kvk/` | KvK preparation planner: backpack + imports from the other pages, what to use on each of the 5 days, milestones |
+| `/map/` | Alliance map planner: towns, HQs, flags, Hunting Traps and Great buildings around the King's Castle, territory and placement rules, share code/link |
 
 ## Structure
 
@@ -22,6 +23,7 @@ truegold/index.html     truegold planner
 governor-gear/index.html
 charms/index.html       governor charms planner
 kvk/index.html          KvK preparation planner
+map/index.html          Alliance map planner
 assets/style.css        shared styles (light and dark theme)
 assets/hero-gear-model.js  hero gear data and optimizer (shared by hero-gear and reforge)
 assets/hero-gear.js
@@ -33,6 +35,8 @@ assets/governor-gear-data.js  governor gear levels + event score (shared with Kv
 assets/charms-model.js   charm data + optimizer (shared by Charms and KvK, window.CH)
 assets/charms.js
 assets/kvk.js
+assets/map.js
+assets/map-examples.js
 404.html
 .nojekyll               serve files as-is on GitHub Pages
 ```
