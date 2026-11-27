@@ -411,22 +411,23 @@ $('btn-export').addEventListener('click',()=>{
   try{navigator.clipboard.writeText(code).then(done,fallback)}catch(e){fallback()}
 });
 /* ---------- Jeabslist import: your 12 pieces from your heroes' gear ----------
-   The page plans one set of gear per troop type; Jeabslist lists every hero. Per troop type we pick the hero
-   placed first in your formation (lowest position), and the player can change it. Materials are not in the API. */
+   The page plans one set of gear per troop type; Jeabslist lists every hero (usually 5). All heroes are shown as
+   cards under their troop type and the player taps the one to plan for. Default: the hero with the most gear
+   invested (levels + mastery), formation order breaking ties. Materials are not in the API. */
 let jlData=null;
-const jlLv=g=>g[2]==='R'?`R+${g[0]-100}`:`+${g[0]}`;
-const jlHeroOpts=(t,sel)=>jlData.heroes.filter(h=>h.troop===t.k).sort((a,b)=>(a.pos||99)-(b.pos||99))
-  .map(h=>`<option value="${h.id}"${h.id===sel?' selected':''}>${h.name}${h.pos?` · formation ${h.pos}`:''}</option>`).join('');
+const jlLv=g=>g[2]==='R'?`R+${g[0]-100}`:g[0]?`M+${g[0]}`:'—';
+const jlInvest=h=>h.gear.reduce((a,g)=>a+g[0]+g[1]*5,0);
+const jlOrder=hs=>hs.slice().sort((a,b)=>jlInvest(b)-jlInvest(a)||(a.pos||99)-(b.pos||99));
 function jlDraw(){
   const box=$('jl-pick');if(!jlData){box.hidden=true;return;}
-  const rows=TROOPS.map(t=>{const hs=jlData.heroes.filter(h=>h.troop===t.k);
-    if(!hs.length)return `<div class="jl-row"><span class="label">${t.name}</span><span class="jl-none">No ${t.name} hero on Jeabslist: your pieces stay as they are.</span></div>`;
-    const sel=jlData.pick[t.k],h=hs.find(x=>x.id===sel);
-    return `<div class="jl-row"><label class="label" for="jl-${t.k}">${t.name}</label><select id="jl-${t.k}" data-t="${t.k}">${jlHeroOpts(t,sel)}</select>
-      <span class="jl-gear">${h.gear.map((g,i)=>`<span title="${SLOT_OF[i]}">${jlLv(g)}<small>/${g[1]}</small></span>`).join('')}</span>${h.lowQ?`<span class="jl-none">${h.lowQ} piece${h.lowQ>1?'s':''} below Mythic, read as empty</span>`:''}</div>`;}).join('');
+  const rows=TROOPS.map(t=>{const hs=jlData.heroes.filter(h=>h.troop===t.k).sort((a,b)=>(a.pos||99)-(b.pos||99));
+    if(!hs.length)return `<div class="jl-row"><span class="label">${t.name}</span><span class="jl-none">No ${t.name} hero on Jeabslist: your ${t.name} pieces stay as they are.</span></div>`;
+    return `<div class="jl-row"><span class="label">${t.name}${hs.length>1?` <small>· pick 1 of ${hs.length}</small>`:''}</span><div class="jl-cards" role="group" aria-label="${t.name} hero">${hs.map(h=>{const on=jlData.pick[t.k]===h.id;
+      return `<button type="button" class="jl-card" data-t="${t.k}" data-id="${h.id}" aria-pressed="${on}"><span class="jl-name"><b>${h.name}</b><small>${h.pos?`Formation ${h.pos}`:'Not in formation'}</small></span>
+        <span class="jl-gear">${h.gear.map((g,i)=>`<span title="${SLOT_OF[i]}">${jlLv(g)}<small>/${g[1]}</small></span>`).join('')}</span>${h.lowQ?`<span class="jl-none">${h.lowQ} piece${h.lowQ>1?'s':''} below Mythic, read as empty</span>`:''}</button>`;}).join('')}</div></div>`;}).join('');
   const when=jlData.fetchedAt?new Date(jlData.fetchedAt).toLocaleString():'unknown date';
-  box.innerHTML=`<p class="jl-h"><b>${jlData.who}</b>: gear seen by Jeabslist on ${when}${jlData.stale?' (may be out of date)':''}. Pick the hero whose gear you're planning for each troop type.</p>
-    ${rows}<p class="foot" style="margin:6px 0 10px">Level/mastery per piece: Helm, Gloves, Chest, Boots. Your materials aren't on Jeabslist: check them in step 1.</p>
+  box.innerHTML=`<p class="jl-h"><b>${jlData.who}</b>: ${jlData.heroes.length} heroes, gear seen by Jeabslist on ${when}${jlData.stale?' (may be out of date)':''}. Tap the hero whose gear you're planning, one per troop type.</p>
+    ${rows}<p class="foot" style="margin:6px 0 10px">Level/mastery per piece: Helm, Gloves, Chest, Boots (R = Red, M = Mythic). Picked first: the hero with the most gear. Your materials aren't on Jeabslist: check them in step 1.</p>
     <div class="btns"><button type="button" class="primary" id="jl-apply">Use this gear</button><button type="button" id="jl-cancel">Cancel</button></div>`;
   box.hidden=false;}
 $('btn-jl').addEventListener('click',async()=>{
@@ -436,12 +437,13 @@ $('btn-jl').addEventListener('click',async()=>{
   const b=$('btn-jl');b.disabled=true;say('Asking Jeabslist for your hero gear…','ok');
   try{const d=await JL.heroGear(acc.fid);
     if(!d.heroes.length){jlData=null;jlDraw();say(d.fetchedAt?'Jeabslist has no hero gear for this governor.':"Jeabslist hasn't read this governor's gear yet. It fills in over time; try again later.",'err');return;}
-    const pick={};TROOPS.forEach(t=>{const hs=d.heroes.filter(h=>h.troop===t.k).sort((a,b)=>(a.pos||99)-(b.pos||99));if(hs.length)pick[t.k]=hs[0].id;});
+    const pick={};TROOPS.forEach(t=>{const hs=jlOrder(d.heroes.filter(h=>h.troop===t.k));if(hs.length)pick[t.k]=hs[0].id;});
     jlData={...d,pick,who:acc.name||('ID '+acc.fid)};jlDraw();say('','ok');}
   catch(e){say(e.message,'err');}
   finally{b.disabled=false;}});
-$('jl-pick').addEventListener('change',e=>{const s=e.target.closest('select[data-t]');if(s&&jlData){jlData.pick[s.dataset.t]=+s.value;jlDraw();$('jl-'+s.dataset.t).focus();}});
 $('jl-pick').addEventListener('click',e=>{
+  const c=e.target.closest('.jl-card');
+  if(c&&jlData){jlData.pick[c.dataset.t]=+c.dataset.id;jlDraw();const n=$('jl-pick').querySelector(`.jl-card[data-id="${c.dataset.id}"]`);if(n)n.focus();return;}
   if(e.target.id==='jl-cancel'){jlData=null;jlDraw();return;}
   if(e.target.id!=='jl-apply'||!jlData)return;
   const st=readState();
