@@ -250,7 +250,7 @@ tr.gv-tot td{border-top:2px solid var(--line)}
 #app-hero tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--ember)}
 .selbtn{padding:4px 12px;font-size:.78rem;border-radius:999px;white-space:nowrap}
 .selbtn[aria-pressed="true"]{background:var(--ember);border-color:var(--ember);color:var(--panel)}
-#app-gov tr.sel td{background:var(--ember-soft)}
+#app-gov tr.sel td,#app-ch tr.sel td{background:var(--ember-soft)}
 tr.gv-cartrow td{color:var(--ember)}
 .cchips{display:inline-flex;gap:3px}
 .cchip{display:inline-grid;place-items:center;width:1.7em;height:1.7em;border-radius:5px;font-family:var(--mono);font-size:.75rem;font-weight:600;color:#fff}

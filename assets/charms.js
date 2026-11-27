@@ -69,15 +69,85 @@ function tile(i,from,to){
   const lbl=p=>{const {l,s}=C.lvAt(p);return `Lv.${l}<small>${s?s+'/5':'&nbsp;'}</small>`;};
   return `<div class="ch-tile${up?' up':''}${b.l===0?' off':''}" title="${C.PIECES[Math.floor(i/3)].n} charm ${i%3+1}: ${C.lvName(from)}${up?' → '+C.lvName(to):''}">
     <img src="${C.img(t,b.l)}" alt="" loading="lazy"><span class="ch-lv">${lbl(to)}</span></div>`;}
+/* ---------- shop: Charm Master's Collection ----------
+   5 levels bought in order ($5, $10, $20, $50, $100), one of 3 chests per level; a level gives its price ÷ 5
+   times the $5 chest. Chests you "Try" are added to your materials in the plan above (not saved). */
+const MASTER=[5,10,20,50,100],CHEST={A:{g:30,d:30},B:{g:20,d:40},C:{g:40,d:20}};
+let cart=[null,null,null,null,null],lastM=null,shopCache=new Map(),shopSig='',shopTmr=null;
+const mLevels=()=>MASTER.map((p,k)=>({p,k})).filter(x=>!st.mc[x.k]);
+const chestAdd=(id,p)=>({g:CHEST[id].g*p/5,d:CHEST[id].d*p/5});
+function cartParts(){let g=0,d=0,spent=0;const desc=[];
+  for(const x of mLevels()){const c=cart[x.k];if(!c)break;const a=chestAdd(c,x.p);g+=a.g;d+=a.d;spent+=x.p;desc.push(`$${x.p} ${c}`);}
+  return {g,d,spent,desc};}
+/* one number to compare plans: KvK Charm Score, or Lethality/Health weighted by your formations */
+function valOf(pl){if(st.m==='score')return pl.score;const W=C.weightsOf(st),ws=W.I+W.C+W.A||1;return ['I','C','A'].reduce((a,t)=>a+pl.stat[t]*W[t],0)/ws;}
+/* plan with extra materials; cached until your charms, goal or formations change */
+function shopScore(add){
+  const sig=JSON.stringify([st.cur,st.g,st.d,st.m,st.tp,st.x,st.prof,st.att,st.def,st.mix,st.for]);
+  if(sig!==shopSig){shopSig=sig;shopCache=new Map();}
+  const key=add.g+'|'+add.d;if(shopCache.has(key))return shopCache.get(key);
+  const pl=C.planFor({...st,g:st.g+add.g,d:st.d+add.d}),v={val:valOf(pl),pl,add};shopCache.set(key,v);return v;}
+/* the best chests for each budget: every combination (3, 9, 27, 81, 243 options) */
+function masterPaths(){
+  const lv=mLevels(),base=shopScore({g:0,d:0});
+  const better=(s,b)=>!b||s.val>b.s.val+1e-9||(Math.abs(s.val-b.s.val)<=1e-9&&(s.pl.power>b.s.pl.power||(s.pl.power===b.s.pl.power&&s.add.d>b.s.add.d)));
+  const rows=[];let spent=0,prev=base;
+  for(let n=1;n<=lv.length;n++){spent+=lv[n-1].p;let best=null;
+    for(let c=0;c<3**n;c++){let x=c,g=0,d=0;const ch=[];
+      for(let j=0;j<n;j++){const id='ABC'[x%3];x=Math.floor(x/3);ch.push(id);const a=chestAdd(id,lv[j].p);g+=a.g;d+=a.d;}
+      const s=shopScore({g,d});if(better(s,best))best={ch,s};}
+    let s=best.s;if(s.val<prev.val)s=prev;
+    rows.push({n,lv:lv.slice(0,n),spent,ch:best.ch,s,dv:s.val-base.val,marg:s.val-prev.val});prev=s;}
+  return {rows,base,lv};}
+/* what a pack adds on top of your own plan */
+function diffTxt(s,b){
+  const st3=['I','C','A'].map(t=>[t,s.pl.stat[t]-b.pl.stat[t]]).filter(([,v])=>Math.abs(v)>1e-9);   /* more materials can move upgrades between troops: show both ways */
+  return {stat:st3.length?st3.map(([t,v])=>`${C.TROOP[t].slice(0,t==='A'?4:3)} ${v>0?'+':'−'}${pct(Math.abs(v))}%`).join(' · '):'—',
+    pts:Math.round((s.pl.score-b.pl.score)*C.KVK_PTS),pw:s.pl.power-b.pl.power};}
+const chipsOf=ch=>ch.map(c=>`<span class="cchip c${c}">${c}</span>`).join('');
+function renderCart(){const c=cartParts(),el=$('cart');el.hidden=!c.spent;
+  if(c.spent)el.innerHTML=`<div><b>Trying packs worth $${fmt(c.spent)}:</b> Master's Collection ${c.desc.join(', ')}<span class="unl">Adds ${fmt(c.g)} Guides · ${fmt(c.d)} Designs. The plan below includes them.</span></div><button type="button" class="cart-clear">Clear selection</button>`;}
+function renderShop(){
+  MASTER.forEach((_,k)=>{$('m-'+k).checked=st.mc[k];});
+  $('shop-unit').textContent=st.m==='score'?'Gains on top of your plan, for your goal: Most KvK points.':'Gains on top of your plan, for your goal: Most stats (Lethality and Health, weighted by your formations).';
+  const M=masterPaths();lastM=M;
+  const sel=M.lv.map(x=>cart[x.k]);let selN=0;while(selN<sel.length&&sel[selN])selN++;
+  $('m-table').querySelector('tbody').innerHTML=M.rows.length?M.rows.map(r=>{
+    const on=selN===r.n&&r.ch.every((c,j)=>sel[j]===c),t=diffTxt(r.s,M.base);
+    return `<tr class="${on?'sel':''} ${r.marg<=1e-9?'zero':''}"><td>${r.n===1?`$${r.lv[0].p} only`:`$${r.lv[0].p} to $${r.lv[r.n-1].p}`}</td>
+      <td class="r">$${fmt(r.spent)}</td><td><span class="cchips">${chipsOf(r.ch)}</span></td><td class="r">${t.stat}</td><td class="r">${t.pts?'+'+fmt(t.pts):'—'}</td><td class="r">${t.pw?'+'+fmt(t.pw):'—'}</td>
+      <td class="r"><button type="button" class="selbtn" data-m="${r.n}" aria-pressed="${on}">${on?'Trying':'Try'}</button></td></tr>`;}).join('')
+    :'<tr><td colspan="7">You opened every level.</td></tr>';
+  $('m-pick').innerHTML=M.lv.map((x,j)=>`<div class="lvpick"><span class="label">$${x.p}</span><div class="seg" role="group" aria-label="Chest for the $${x.p} level">${['','A','B','C'].map(c=>`<button type="button" data-k="${x.k}" data-j="${j}" data-c="${c}" aria-pressed="${(sel[j]||'')===c}">${c||'None'}</button>`).join('')}</div></div>`).join('');
+  let selTxt='Pick a chest for each level to see what your own choice gives.';
+  if(selN){const c=cartParts(),s=shopScore({g:c.g,d:c.d}),t=diffTxt(s,M.base),best=M.rows[selN-1];
+    selTxt=`<b>Your picks</b> ($${fmt(c.spent)}): ${s.val-M.base.val>1e-9?`${t.stat}, +${fmt(t.pts)} KvK points`:'no gain yet'}${best.s.val-s.val>1e-9?`. The best mix for this budget (${best.ch.join(' · ')}) gives ${diffTxt(best.s,M.base).stat}, +${fmt(diffTxt(best.s,M.base).pts)} points.`:'. That is the best mix for this budget.'}`;}
+  $('m-selgain').innerHTML=selTxt;
+  const v=[],useful=M.rows.filter(r=>r.marg>1e-9);
+  if(!M.rows.length)v.push('<p>You opened every level of the Master\'s Collection.</p>');
+  else if(!st.g&&!st.d&&st.cur.every(p=>!p))v.push('<p>Enter your charms and materials above to see which chests help you most.</p>');
+  else if(!useful.length)v.push('<p><b>No chest here improves your plan right now.</b></p>');
+  else{const full=M.rows[M.rows.length-1],first=useful[0],best=useful.reduce((a,b)=>b.dv/b.spent>a.dv/a.spent?b:a),last=useful[useful.length-1];
+    v.push(`<p><b>Buying all ${M.lv.length} level${M.lv.length>1?'s':''} ($${fmt(full.spent)}):</b> ${full.ch.map((c,j)=>`$${M.lv[j].p} Chest ${c}`).join(', ')}.</p>`);
+    if(first!==M.rows[0])v.push(`<p><b>First payoff at $${fmt(first.spent)}:</b> buying less adds nothing yet.</p>`);
+    const bt=diffTxt(best.s,M.base);
+    v.push(`<p><b>Best value: stop at $${fmt(best.spent)}</b> for ${bt.stat} and +${fmt(bt.pts)} KvK points.</p>`);
+    if(last!==full)v.push(`<p><b>Nothing more after $${fmt(last.spent)}:</b> the next levels add materials your plan can't use yet.</p>`);}
+  $('m-verdict').innerHTML=v.join('');}
+/* the shop tests up to 363 plans: run it once you stop typing */
+const queueShop=()=>{clearTimeout(shopTmr);shopTmr=setTimeout(renderShop,250);};
+
 function render(){
-  plan=C.planFor(st);
+  const cp=cartParts();
+  plan=C.planFor({...st,g:st.g+cp.g,d:st.d+cp.d});
+  renderCart();queueShop();
   const sumF=f=>f.I+f.C+f.A;
   $('fs-att').textContent=sumF(st.att)===100?'':`Adds up to ${sumF(st.att)}%: read as shares`;
   $('fs-def').textContent=sumF(st.def)===100?'':`Adds up to ${sumF(st.def)}%: read as shares`;
   $('mix-o').textContent=`${st.mix}% attack · ${100-st.mix}% defense`;
   const W=C.weightsOf(st),ws=W.I+W.C+W.A;
   $('wout').innerHTML=ws>0?`Each % of charm bonus is worth: ${['I','C','A'].map(t=>`<b>${C.TROOP[t]} ${Math.round(W[t]/ws*100)}%</b>`).join(' · ')}`:'All your formations are 0%: add troops.';
-  const pts=Math.round(plan.score*C.KVK_PTS),ug=st.g-plan.left.g,ud=st.d-plan.left.d;
+  const pts=Math.round(plan.score*C.KVK_PTS),ug=st.g+cp.g-plan.left.g,ud=st.d+cp.d-plan.left.d;
   $('s-pw').textContent=plan.power?'+'+fmt(plan.power):'—';$('s-pw2').textContent=plan.steps.length?`${plan.steps.reduce((a,s)=>a+s.to-s.from,0)} upgrades`:'';
   $('s-kvk').textContent=pts?fmt(pts):'—';$('s-kvk2').textContent=plan.score?`Charm Score +${fmt(plan.score)}`:'';
   $('s-mat').innerHTML=plan.steps.length?`${fmt(ug)} <small>Guides</small><br>${fmt(ud)} <small>Designs</small>`:'—';
@@ -114,7 +184,20 @@ const say=(t,c)=>{const m=$('msg');m.textContent=t;m.className='msg '+c;};
 const mine=()=>{if(isExample){isExample=false;}};
 $('app-ch').addEventListener('change',e=>{
   const so=e.target.closest('.cg-ch select');
-  if(so){const k=+so.dataset.k;selC=k;st.cur[selP*3+k]=+so.value;mine();drawCharms();render();}
+  if(so){const k=+so.dataset.k;selC=k;st.cur[selP*3+k]=+so.value;mine();drawCharms();render();return;}
+  const mb=e.target.closest('.bought input');
+  if(mb){st.mc=MASTER.map((_,k)=>$('m-'+k).checked);cart=[null,null,null,null,null];mine();render();}
+});
+$('app-ch').addEventListener('click',e=>{
+  if(e.target.closest('.cart-clear')){cart=[null,null,null,null,null];render();return;}
+  const b=e.target.closest('.selbtn');
+  if(b&&lastM){const n=+b.dataset.m,row=lastM.rows[n-1],was=b.getAttribute('aria-pressed')==='true';
+    cart=[null,null,null,null,null];if(!was)lastM.lv.slice(0,n).forEach((x,j)=>{cart[x.k]=row.ch[j];});render();return;}
+  const pk=e.target.closest('#m-pick [data-k]');
+  if(pk&&lastM){const j=+pk.dataset.j,c=pk.dataset.c,lv=lastM.lv;
+    if(!c)lv.slice(j).forEach(x=>{cart[x.k]=null;});
+    else{lv.slice(0,j).forEach((x,i)=>{if(!cart[x.k])cart[x.k]=lastM.rows[j].ch[i];});cart[lv[j].k]=c;}
+    render();}
 });
 $('pieces').addEventListener('click',e=>{
   const pb=e.target.closest('.cg-pc');if(pb){selP=+pb.dataset.p;selC=0;drawCharms();return;}
@@ -130,9 +213,9 @@ $('w-mix').addEventListener('input',()=>{st.mix=+$('w-mix').value;mine();render(
 document.querySelectorAll('[data-w]').forEach(el=>el.addEventListener('input',()=>{st[el.dataset.w][el.dataset.t]=Math.max(0,Math.min(100,+el.value||0));mine();render();}));
 $('all-go').addEventListener('click',()=>{const l=+$('all-l').value;st.cur=st.cur.map(()=>C.posOf(l,0));mine();writeInputs();render();});
 $('more').addEventListener('click',()=>{showAll=!showAll;render();});
-function load(o,msg){st=o;isExample=false;writeInputs();render();say(msg,'ok');}
+function load(o,msg){st=o;cart=[null,null,null,null,null];isExample=false;writeInputs();render();say(msg,'ok');}
 $('btn-import').addEventListener('click',()=>{try{load(C.decode($('code').value),'Imported.');}catch(e){say(e.message,'err');}});
-$('btn-example').addEventListener('click',()=>{st=C.clean(EXAMPLE);isExample=true;writeInputs();render();say('Example loaded. Your own data is kept until you edit.','ok');});
+$('btn-example').addEventListener('click',()=>{st=C.clean(EXAMPLE);isExample=true;cart=[null,null,null,null,null];writeInputs();render();say('Example loaded. Your own data is kept until you edit.','ok');});
 const copy=(txt,ok)=>{const done=()=>say(ok,'ok');
   if(navigator.clipboard)navigator.clipboard.writeText(txt).then(done,()=>{$('code').focus();$('code').select();say('Copy the code from the box above.','ok');});
   else{$('code').focus();$('code').select();say('Copy the code from the box above.','ok');}};

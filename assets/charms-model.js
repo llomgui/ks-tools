@@ -100,8 +100,8 @@ function heroDefaults(){
 /* the plan for a saved or edited state */
 const planFor=st=>optimize(st.cur,st,{w:weightsOf(st),mode:st.m,x:st.x,goal:st.m==='score'&&st.tp>0?st.tp/KVK_PTS:0});
 
-/* KSC1 codes: charm positions, materials, focus, goal, points target, exchanges */
-function encode(st){return 'KSC1:'+btoa(JSON.stringify({c:st.cur,g:st.g,d:st.d,m:st.m,tp:st.tp,x:st.x,p:st.prof,a:st.att,df:st.def,mx:st.mix,fr:st.for})).replace(/=+$/,'');}
+/* KSC1 codes: charm positions, materials, focus, goal, points target, exchanges, opened Master's Collection levels */
+function encode(st){return 'KSC1:'+btoa(JSON.stringify({c:st.cur,g:st.g,d:st.d,m:st.m,tp:st.tp,x:st.x,p:st.prof,a:st.att,df:st.def,mx:st.mix,fr:st.for,mc:st.mc})).replace(/=+$/,'');}
 function decode(txt){
   const raw=String(txt||'').trim().replace(/^.*#/,'');
   if(!/^KSC1:/i.test(raw))throw new Error('This is not a Charms code. It should start with KSC1:');
@@ -115,7 +115,8 @@ function clean(o){
     g:Math.max(0,Math.floor(+o.g||0)),d:Math.max(0,Math.floor(+o.d||0)),
     m:o.m==='score'?'score':'stats',tp:Math.max(0,Math.floor(+o.tp||0)),x:[0,1,2].includes(+o.x)?+o.x:0,
     prof:PROF[p]?p:h.prof,att:fm(a,h.att),def:fm(df,h.def),mix:mx!=null&&isFinite(+mx)?Math.max(0,Math.min(100,+mx)):h.mix,
-    for:['att','def','mix'].includes(fr)?fr:h.for};}
+    for:['att','def','mix'].includes(fr)?fr:h.for,
+    mc:Array.from({length:5},(_,k)=>!!(Array.isArray(o.mc)&&o.mc[k]))};}   /* Master's Collection levels already opened */
 const KEY='ks-charms-v1';
 function loadSaved(){try{const o=JSON.parse(localStorage.getItem(KEY)||'null');return o?clean(o):null;}catch(e){return null;}}
 
