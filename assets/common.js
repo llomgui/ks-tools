@@ -13,7 +13,7 @@
    KS.gen() changed meanwhile, i.e. the player switched game account. */
 (function(){
 const KEYS={hero:'hgp-state-v3',heroOld:'hgp-state-v2',gov:'hgp-gov-v1',charms:'ks-charms-v1',kvk:'ks-kvk-v1',
-  reforge:'ks-reforge-v1',truegold:'ks-truegold-v1',map:'ks-map-v1'};
+  reforge:'ks-reforge-v1',truegold:'ks-truegold-v1',map:'ks-map-v1',swordland:'ks-swordland-v1'};
 function read(key){try{return JSON.parse(localStorage.getItem(key)||'null');}catch(e){return null;}}
 function write(key,v){try{localStorage.setItem(key,JSON.stringify(v));return true;}catch(e){return false;}}
 const $=id=>document.getElementById(id);

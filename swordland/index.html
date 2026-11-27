@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kingshot Swordland Showdown Planner | KS Tools</title>
+<meta name="description" content="Free Kingshot Swordland Showdown planner: your 30 players and 10 substitutes, a rally leader, garrison leader and joiners on every building for each step of the battle, shared with one link.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Kingshot Swordland Showdown Planner | KS Tools">
+<meta property="og:description" content="Free Kingshot Swordland Showdown planner: your 30 players and 10 substitutes, a rally leader, garrison leader and joiners on every building for each step of the battle, shared with one link.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23b8430f'/%3E%3Cpath d='M9 22l9-12 2 2-9 12zM18 8l6 6' stroke='%23fff' stroke-width='2.5' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../assets/style.css">
+<script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script>
+</head>
+<body>
+<div class="wrap">
+<nav class="sitenav" aria-label="Site">
+<a class="brand" href="../">KS <span>Tools</span></a>
+<div class="apptabs"><a href="../hero-gear/">Hero Gear</a><a href="../reforge/">Reforge</a><a href="../truegold/">Truegold</a><a href="../governor-gear/">Governor Gear</a><a href="../charms/">Charms</a><a href="../kvk/">KvK</a><a href="../map/">Map</a><a href="../swordland/" aria-current="page">Swordland</a></div>
+</nav>
+<div id="app-swordland">
+<header>
+<div>
+<h1>Swordland Showdown Planner</h1>
+<p class="lede">Plan one legion: who holds each building and where everyone else sends their marches, step by step through the hour.</p>
+</div>
+</header>
+<section class="panel start" aria-labelledby="h-start">
+<h2 id="h-start">Start here</h2>
+<ol class="howto">
+<li><b>Players:</b> type or paste your legion in the list below, strongest first, and set each one to <i>Join</i> or <i>Substitute</i> like in the game's Legion Combatants list.</li>
+<li><b>Plan each step:</b> pick a step, click a building and choose its holder (tier A+ or A) and the garrison marches. Or drag a player's number onto a building (on a phone: tap the number, then the building).</li>
+<li><b>Suggest plan</b> fills what is still empty from power: holders on the buildings, garrisons, rallies, looters and Undercellars, in every step. What you already set stays.</li>
+<li><b>Just looking?</b> <i>Load example</i> shows a real 39-player legion with its suggested plan.</li>
+<li><b>Share:</b> copy the code or link, or <i>Copy for chat</i> for a plain text plan.</li>
+</ol>
+<label class="field"><span class="label">Paste a plan code</span>
+<textarea id="code" spellcheck="false" placeholder="Paste a KSW1: code, then press Import code"></textarea>
+</label>
+<div class="btns" style="margin-top:10px">
+<button id="btn-suggest" type="button">Suggest plan</button>
+<button id="btn-example" type="button">Load example</button>
+<button id="btn-import" type="button">Import code</button>
+<button id="btn-export" type="button" class="primary">Copy plan code</button>
+<button id="btn-link" type="button">Copy link</button>
+<button id="btn-chat" type="button">Copy for chat</button>
+<button id="btn-clear-jobs" type="button">Clear jobs</button>
+<button id="btn-clear" type="button">Reset</button>
+</div>
+<p id="msg" class="msg" role="status"></p>
+<details id="chat-box" class="sw-chatbox"><summary>Plan as text</summary><textarea id="chat" readonly spellcheck="false" aria-label="Plan as text"></textarea></details>
+</section>
+
+<section class="panel" aria-labelledby="h-steps" style="margin:20px 0">
+<h2 id="h-steps">Steps</h2>
+<div class="sw-steps" id="sw-steps" role="tablist" aria-label="Steps"></div>
+<div class="sw-stepedit">
+<label class="field"><span class="label">Step name</span><input type="text" id="step-n" maxlength="24"></label>
+<label class="field"><span class="label">When</span><input type="text" id="step-t" maxlength="16" placeholder="e.g. 0–15 min"></label>
+<div class="btns"><button id="btn-step-add" type="button">Add step</button><button id="btn-step-copy" type="button" title="Copy every task from the step before">Copy previous step</button><button id="btn-step-del" type="button">Delete step</button></div>
+</div>
+<div class="sw-side" role="radiogroup" aria-label="Our spawn"><span class="label">We spawn</span>
+<label><input type="radio" name="side" value="blue"> Blue (left)</label><label><input type="radio" name="side" value="red"> Red (right)</label></div>
+</section>
+
+<div class="grid sw-grid">
+<div class="col">
+<section class="panel" aria-label="Battlefield">
+<div class="sw-map" id="sw-map"></div>
+<p class="mp-hover">Number = order to take it. Name = holder, +N = garrison marches. Blue and red squares = spawn.</p>
+</section>
+<section class="panel" aria-labelledby="h-why" style="margin-top:20px">
+<h2 id="h-why">Why this plan</h2>
+<div id="why"></div>
+</section>
+</div>
+<div class="col">
+<section class="panel" aria-labelledby="h-sel">
+<h2 id="h-sel">Building</h2>
+<div id="sel"></div>
+</section>
+<section class="panel" aria-labelledby="h-plan" style="margin-top:20px">
+<h2 id="h-plan">This step</h2>
+<div id="plan"></div>
+</section>
+</div>
+</div>
+
+<section class="panel" aria-labelledby="h-roster" style="margin-top:20px">
+<div class="sw-rhead"><h2 id="h-roster">Legion players</h2><span id="count" class="sw-count"></span></div>
+<p class="sw-hint">30 Join and 10 Substitutes, as set in the game. Substitutes only get in during the first 3 minutes if a Join player doesn't come.</p>
+<ul class="sw-tiers">
+<li><b class="t-Ap">A+</b> holds up to 3 buildings, <b class="t-A">A</b> up to 2, always next to each other: they take it and stay in it, swap to defense hero gear when a rally is coming, and keep their city next to their buildings.</li>
+<li><b class="t-B">B</b> <b class="t-C">C</b> never hold a building: their marches garrison buildings, fill rallies and gather the Undercellars. Their city stays in the safe zone; they only teleport to loot, and a teleport brings every march home, so send them back out after.</li>
+<li>Tier <i>Auto</i> comes from power compared with your strongest Join player. Rallies, loot and the jobs column are for the step you picked above.</li>
+</ul>
+<div class="btns" style="margin:8px 0">
+<button id="btn-sort" type="button">Sort by power</button>
+</div>
+<details class="sw-pastebox"><summary>Paste a list of players</summary>
+<textarea id="paste" spellcheck="false" placeholder="One player per line. Power and Join / Sub after the name are optional:&#10;Pong 6,918 join&#10;GobZ 2,430 sub&#10;Chen"></textarea>
+<div class="btns" style="margin-top:8px"><button id="btn-paste" type="button">Fill the list</button></div>
+</details>
+<ol class="sw-roster" id="roster"></ol>
+</section>
+
+<section class="panel" style="margin-top:20px">
+<details class="mp-rules">
+<summary>Swordland rules used</summary>
+<ul>
+<li>A legion has 30 players and 10 substitutes. Substitutes only get in during the first 3 minutes, if someone doesn't come.</li>
+<li>The match lasts 60 minutes. The Swordshrine, Mercenary and Reformation are locked for the first 15 minutes.</li>
+<li>A building is yours after 3 minutes inside (1.5 with the Bell Tower). You then get the first control bonus once, and points every minute you hold it.</li>
+<li>Points (alliance, personal is half): Swordshrine 9,000 then +1,800/min, Sanctum 6,000 +1,200/min, Abbey 3,000 +600/min, Bell Tower, Mercenary, Reformation and Stables 1,200 +240/min.</li>
+<li>Half of a building's points pile up on it. When the enemy takes it, the pile drops on the ground: send spare marches to loot it.</li>
+<li>Stables: free teleport every 5 minutes instead of 10. Bell Tower: captures take half the time. Reformation: troop buff. Mercenary: mercenary attacks on buildings.</li>
+<li>Undercellars: 8 appear in phase 3, two waves of four about 15 and 20 minutes into the phase, at random spots (the magnifying glass on the minimap shows them). Each holds 4,800 points. We send 2 gatherers to each.</li>
+<li>Marches: every building held, garrison, Undercellar and rally uses one; a teleport (to loot) brings every march home.</li>
+<li>Kills only give personal points: 80 per 10,000 enemy power when attacking, 40 when defending.</li>
+<li>Troops are only injured. Leaving the field heals them, then you wait 12 minutes before you can enter again.</li>
+</ul>
+<p>From the kingshotwiki.com, kingshotalmanach.com, heaven-guardian.com and kingshotguide.org guides. Building pictures: kingshot.net.</p>
+</details>
+</section>
+</div>
+<footer class="sitefoot"><span>KS Tools · free calculators for Kingshot players</span><span>Independent fan project, not affiliated with Kingshot or Century Games.</span></footer>
+</div>
+<script src="../assets/common.js"></script>
+<script src="../assets/jeabslist.js"></script>
+<script src="../assets/accounts.js"></script>
+<script src="../assets/swordland.js"></script>
+</body>
+</html>
