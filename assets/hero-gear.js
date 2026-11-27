@@ -468,12 +468,7 @@ function jumpTo(key){const row=$('row-'+key);if(!row)return;
   setTimeout(()=>{const inp=$('l-'+key);if(inp)inp.focus({preventScroll:true});},350);}
 $('preview').addEventListener('click',e=>{const c=e.target.closest('.gcw');if(c)jumpTo(c.dataset.row);});
 $('preview').addEventListener('keydown',e=>{const c=e.target.closest('.gcw');if(c&&(e.key==='Enter'||e.key===' ')){e.preventDefault();jumpTo(c.dataset.row);}});
-let blankArmed=0;
-$('btn-blank').addEventListener('click',()=>{
-  const btn=$('btn-blank');
-  if(!blankArmed){blankArmed=setTimeout(()=>{blankArmed=0;btn.textContent='Start from blank';btn.classList.remove('danger');},4000);
-    btn.textContent='Click again to clear everything';btn.classList.add('danger');return;}
-  clearTimeout(blankArmed);blankArmed=0;btn.textContent='Start from blank';btn.classList.remove('danger');
+KS.confirmButton($('btn-blank'),()=>{
   isExample=false;writeState(BLANK());render();showAcct();
   say('Cleared. Enter your resources and gear, or paste a KGO code.','ok');
   $('h-res').scrollIntoView({block:'start'});$('r-fh').focus({preventScroll:true});

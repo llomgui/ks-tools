@@ -285,7 +285,7 @@ $('code').addEventListener('blur',()=>{if(!$('code').value.trim())$('code').valu
 $('f-mix').addEventListener('input',()=>{st.form.mix=+$('f-mix').value;render();});
 document.querySelectorAll('input[name=planfor]').forEach(r=>r.addEventListener('change',()=>{if(r.checked){st.planFor=r.value;render();}}));
 $('btn-example').addEventListener('click',()=>load(fresh(EXAMPLE_PIECES),'Loaded the example: 32 Mythic pieces upgraded across many heroes.'));
-$('btn-blank').addEventListener('click',()=>load(fresh([]),'Cleared. Press Add piece to start.'));
+KS.confirmButton($('btn-blank'),()=>load(fresh([]),'Reset. Press Add piece to start.'));
 
 /* a shared link carries the code after # */
 function fromHash(){

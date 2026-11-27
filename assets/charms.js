@@ -271,6 +271,7 @@ $('all-go').addEventListener('click',()=>{const l=+$('all-l').value;st.cur=st.cu
 $('more').addEventListener('click',()=>{showAll=!showAll;render();});
 function load(o,msg){st=o;cart=defCart();isExample=false;writeInputs();render();say(msg,'ok');}
 $('btn-import').addEventListener('click',()=>{try{load(C.decode($('code').value),'Imported.');}catch(e){say(e.message,'err');}});
+KS.confirmButton($('btn-blank'),()=>{st=C.clean({});isExample=false;cart=defCart();showAll=false;writeInputs();render();say('Reset. Enter your Charm Guides, Charm Designs and charm levels.','ok');});
 $('btn-example').addEventListener('click',()=>{st=C.clean(EXAMPLE);isExample=true;cart=defCart();writeInputs();render();say('Example loaded. Your own data is kept until you edit.','ok');});
 const copy=(txt,ok)=>KS.copyCode(txt,ok,say);
 $('btn-export').addEventListener('click',()=>copy(C.encode(st),'Code copied.'));

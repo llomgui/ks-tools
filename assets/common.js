@@ -29,6 +29,12 @@ function copyText(t){try{return navigator.clipboard?navigator.clipboard.writeTex
 /* copy a share code; when the browser refuses, select it in the code box so the player can press Ctrl+C */
 function copyCode(text,ok,say,boxId){copyText(text).then(y=>{if(y){say(ok,'ok');return;}
   const box=$(boxId||'code');if(box){box.value=text;box.focus();box.select();}say('Copy failed. The code is selected in the box: press Ctrl+C.','warn');});}
+/* a button that asks first: the first click turns it red with "Are you sure? Click again", a second click
+   within 4 seconds runs it, otherwise it goes back to normal */
+function confirmButton(btn,run,ask){if(!btn)return;let t=0;const label=btn.textContent;
+  const reset=()=>{clearTimeout(t);t=0;btn.textContent=label;btn.classList.remove('danger');};
+  btn.addEventListener('click',()=>{if(!t){t=setTimeout(reset,4000);btn.textContent=ask||'Are you sure? Click again';btn.classList.add('danger');return;}
+    reset();run();});}
 let gen=0;
-window.KS={KEYS,read,write,$,fmt,pct,esc,msg,copyText,copyCode,gen:()=>gen,bumpGen:()=>++gen};
+window.KS={KEYS,read,write,$,fmt,pct,esc,msg,copyText,copyCode,confirmButton,gen:()=>gen,bumpGen:()=>++gen};
 })();

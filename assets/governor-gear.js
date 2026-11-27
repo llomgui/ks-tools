@@ -525,12 +525,7 @@ $('gv-all-now').addEventListener('click',()=>{const q=allPos();
   PIECES.forEach((_,i)=>setPos('gv-cl-'+i,'gv-cs-'+i,q));
   isExample=false;render();say(`All 6 pieces set to ${lvName(q)}. Change any piece that differs.`,'ok');});
 $('gv-example').addEventListener('click',()=>{writeState(EXAMPLE());render();say('Loaded the example account.','ok');});
-let armed=0;
-$('gv-blank').addEventListener('click',()=>{
-  const b=$('gv-blank');
-  if(!armed){armed=setTimeout(()=>{armed=0;b.textContent='Start from blank';b.classList.remove('danger');},4000);
-    b.textContent='Click again to clear everything';b.classList.add('danger');return;}
-  clearTimeout(armed);armed=0;b.textContent='Start from blank';b.classList.remove('danger');
+KS.confirmButton($('gv-blank'),()=>{
   writeState(BLANK());render();say('Cleared. Enter your materials and levels.','ok');});
 function jump(i){selG=+i;drawGov();const row=$('gv-row-'+i);if(!row)return;
   row.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});

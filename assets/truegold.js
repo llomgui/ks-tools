@@ -298,6 +298,7 @@ $('tiers').innerHTML=TIER_TG.map((c,i)=>`<tr><td>${i*20+1}–${i*20+20}</td><td 
 $('btn-import').addEventListener('click',()=>{try{load(importCode($('code').value),'Imported.');}catch(e){say(e.message,'err');}});
 $('btn-export').addEventListener('click',()=>{$('code').value=exportCode();copy($('code').value,'Code copied. Paste it here later and press Import code.');});
 $('btn-link').addEventListener('click',()=>copy(location.origin+location.pathname+'#'+exportCode(),'Link copied. Opening it loads this setup.'));
+window.KS.confirmButton($('btn-blank'),()=>load(fromLabels({}),'Reset. Set your buildings\' levels and your goal.'));
 $('btn-example').addEventListener('click',()=>load(fromLabels(EXAMPLE),'Loaded the example: Town Center TG 2 → TG 5.'));
 $('code').addEventListener('blur',()=>{if(!$('code').value.trim())$('code').value=exportCode();});
 function fromHash(){if(!location.hash.startsWith('#'+CODE))return false;

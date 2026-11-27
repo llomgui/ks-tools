@@ -221,7 +221,7 @@ $('btn-import').addEventListener('click',()=>{try{const r=readCode($('code').val
 const copy=(txt,ok)=>KS.copyCode(txt,ok,say);
 $('btn-export').addEventListener('click',()=>copy(exportCode(),'Code copied.'));
 $('btn-link').addEventListener('click',()=>copy(location.href.split('#')[0]+'#'+exportCode(),'Link copied. Opening it loads this backpack.'));
-$('btn-clear').addEventListener('click',()=>{if(!confirm('Clear your KvK backpack?'))return;st=blank();$('srcs').innerHTML='';writeInputs();render();say('Cleared.','ok');});
+KS.confirmButton($('btn-clear'),()=>{st=blank();$('srcs').innerHTML='';writeInputs();render();say('Reset.','ok');});
 function fromHash(){const h=decodeURIComponent(location.hash.slice(1));if(!/^KSK1:/i.test(h))return;
   try{const r=readCode(h);st=r.whole;history.replaceState(null,'',location.pathname);}catch(e){say(e.message,'err');}}
 window.addEventListener('hashchange',()=>{fromHash();writeInputs();render();});
