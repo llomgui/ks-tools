@@ -6,7 +6,7 @@
 (function(){
 const BASE='https://jeabslist.com/api/v1',TOKEN_KEY='ks-jl-token',CACHE_KEY='ks-jl-cache',H=3600e3;
 /* how long an answer stays useful, by path (first match wins) */
-const TTLS=[[/\/kvk\/matchups/,1*H],[/\/kvk\/forecast$/,6*H],[/\/prep$/,12*H],[/\/hero-gear$/,6*H],[/^\/players\/\d+$/,24*H]];
+const TTLS=[[/\/kvk\/matchups/,1*H],[/\/kvk\/forecast$/,6*H],[/\/prep$/,12*H],[/\/hero-gear$/,6*H],[/^\/players\/\d+$/,24*H],[/\/map$/,0]];   /* 0 = not kept: map answers are big and Jeabslist keeps them fresh itself */
 const ttlOf=path=>{const p=path.split('?')[0];const m=TTLS.find(([re])=>re.test(p))||[0,H];return m[1];};
 const MAXN=60;   /* answers kept; oldest dropped first */
 const readCache=()=>{try{return JSON.parse(localStorage.getItem(CACHE_KEY)||'{}')||{};}catch(e){return {};}};
@@ -24,18 +24,19 @@ const fail=(code,msg)=>{const e=new Error(msg);e.code=code;return e;};
 async function get(path,opt){
   opt=opt||{};const tok=token();
   if(!tok)throw fail('no_token','Add your Jeabslist API token first: account menu, top right.');
-  if(!opt.fresh){const c=readCache()[path];if(c&&Date.now()-c.t<ttlOf(path))return c.d;}
+  const ttl=ttlOf(path);
+  if(!opt.fresh&&ttl){const c=readCache()[path];if(c&&Date.now()-c.t<ttl)return c.d;}
   let r;
   try{r=await fetch(BASE+path,{headers:{Authorization:'Bearer '+tok,Accept:'application/json'}});}
   catch(e){throw fail('network',"Couldn't reach Jeabslist. Check your connection and try again.");}
   if(r.status===401)throw fail('token','Jeabslist refused this token. Check it in the account menu.');
   if(r.status===402){let pr=false;try{pr=(await r.json()).error==='premium_required';}catch(e){}
     throw fail('plan',pr?'This needs Jeabs Plus+ Premium.':'Your Jeabslist subscription has lapsed.');}
-  if(r.status===404)throw fail('not_found',"Jeabslist doesn't know this Governor ID. Check the number on your in-game profile.");
+  if(r.status===404)throw fail('not_found',opt.notFound||"Jeabslist doesn't know this Governor ID. Check the number on your in-game profile.");
   if(r.status===429){const s=+r.headers.get('Retry-After')||30;throw fail('rate',`Too many requests to Jeabslist. Try again in ${s} seconds.`);}
   if(!r.ok)throw fail('http',`Jeabslist answered with an error (HTTP ${r.status}). Try again later.`);
   const d=await r.json();
-  const c=readCache();c[path]={t:Date.now(),d};writeCache(c);
+  if(ttl){const c=readCache();c[path]={t:Date.now(),d};writeCache(c);}
   return d;}
 /* when an answer was fetched (ms), or 0 */
 const fetchedAt=path=>{const c=readCache()[path];return c?c.t:0;};
@@ -46,7 +47,7 @@ async function player(fid,opt){
   fid=cleanId(fid);if(!fid)throw fail('bad_id','Enter your Governor ID: the digits on your in-game profile.');
   const d=await get('/players/'+fid,opt);
   return {fid:String(d.id||fid),name:d.name||'',avatar:d.avatar_url||'',kingdom:+d.kingdom||0,tc:+d.town_hall_level||0,
-    power:+d.power||0,alliance:d.alliance?(d.alliance.abbr||''):'',at:Date.now()};}
+    power:+d.power||0,alliance:d.alliance?(d.alliance.abbr||''):'',allianceId:d.alliance?+d.alliance.id||0:0,at:Date.now()};}
 /* hero gear (Premium). Gear ids read 10{slot 1-4}{troop 1-3}{quality}01: slot and troop match the Hero Gear page.
    slv is the enhancement level (0-100 Mythic, 101-200 Red), rlv the mastery (forge) level. */
 async function heroGear(fid,opt){
@@ -62,5 +63,15 @@ async function heroGear(fid,opt){
       pieces:gear.filter(Boolean).length,lowQ};}).filter(h=>h.troop);
   return {heroes,fetchedAt:d.fetched_at||null,stale:!!d.stale};}
 
-window.JL={token,setToken,hasToken:()=>!!token(),get,fetchedAt,player,heroGear,HEROES,cleanId};
+/* kingdom map (Jeabs Plus+ Premium): q = {x,y,r} square (r up to 30), or {alliance} id, plus refresh/cached.
+   A square older than 6 h is scanned live (refresh: 15 min); cached reads stored rows only. Live scans: 6/hour, 40/day. */
+function kingdomMap(kid,q,opt){kid=cleanId(kid);if(!kid)throw fail('bad_id','Enter the kingdom number.');q=q||{};
+  const p=new URLSearchParams();
+  if(q.r){p.set('x',Math.round(q.x));p.set('y',Math.round(q.y));p.set('r',Math.max(1,Math.min(30,Math.round(q.r))));}
+  if(q.alliance)p.set('alliance_id',cleanId(q.alliance));
+  if(q.refresh)p.set('refresh','1');if(q.cached)p.set('cached','1');
+  const s=p.toString();
+  return get(`/kingdoms/${kid}/map${s?'?'+s:''}`,{...opt,notFound:`Jeabslist doesn't know kingdom #${kid}.`});}
+
+window.JL={token,setToken,hasToken:()=>!!token(),get,fetchedAt,player,heroGear,kingdomMap,HEROES,cleanId};
 })();

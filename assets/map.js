@@ -32,7 +32,8 @@ const T={
   gbread:{n:'Great Mill',sz:3,full:1,uniq:'great',al:1,lab:'Mill'},
   gwood:{n:'Great Sawmill',sz:3,full:1,uniq:'great',al:1,lab:'Sawmill'},
   gstone:{n:'Great Quarry',sz:3,full:1,uniq:'great',al:1,lab:'Quarry'},
-  giron:{n:'Great Iron Mine',sz:3,full:1,uniq:'great',al:1,lab:'Iron'}};
+  giron:{n:'Great Iron Mine',sz:3,full:1,uniq:'great',al:1,lab:'Iron'},
+  great:{n:'Great building',sz:3,full:1,uniq:'great',al:1,lab:'Great'}};   /* from Jeabslist, which doesn't say which kind */
 const TOOLS=[['select','Select','1'],['town','Town','2'],['phq','Plain HQ','3'],['whq','Wilderness HQ','4'],
   ['flag','Flag','5'],['trap1','Trap 1','6'],['trap2','Trap 2','7']];
 const GREAT=['gbread','gwood','gstone','giron'];
@@ -44,16 +45,17 @@ const TERR={fertile:'Fertile land',plain:'Plain',badland:'Badland',ruins:'Ruins'
 
 /* ---------- state ---------- */
 let st,sel=null,tool='select',undo=[],terr=null,bad=new Map();
-const blank=()=>({v:1,al:[{id:'a1',tag:'',name:'My alliance',color:COLORS[0]}],act:'a1',objs:[],view:{x:600,y:600,s:8},ignore:false});
+const MAXO=1500;   /* buildings and towns on one plan */
+const blank=()=>({v:1,kid:0,al:[{id:'a1',tag:'',name:'My alliance',color:COLORS[0]}],act:'a1',objs:[],view:{x:600,y:600,s:8},ignore:false});
 const int=(v,lo,hi,d)=>{v=Math.round(+v);return Number.isFinite(v)?Math.min(hi,Math.max(lo,v)):d;};
 function clean(s){const b=blank();if(!s||typeof s!=='object')return b;
   const al=(Array.isArray(s.al)?s.al:[]).filter(a=>a&&typeof a.id==='string').slice(0,20).map((a,i)=>({id:a.id,
     tag:String(a.tag||'').slice(0,4),name:String(a.name||'').slice(0,30),color:/^#[0-9a-f]{6}$/i.test(a.color)?a.color:COLORS[i%COLORS.length]}));
   const ids=new Set(al.map(a=>a.id)),seen=new Set();
-  const objs=(Array.isArray(s.objs)?s.objs:[]).filter(o=>o&&T[o.t]&&typeof o.id==='string'&&!seen.has(o.id)&&seen.add(o.id)).slice(0,600).map(o=>({id:o.id,t:o.t,
-    x:int(o.x,0,N-T[o.t].sz,600),y:int(o.y,0,N-T[o.t].sz,600),a:ids.has(o.a)?o.a:'',n:String(o.n||'').slice(0,24),c:/^#[0-9a-f]{6}$/i.test(o.c)?o.c:''}));
+  const objs=(Array.isArray(s.objs)?s.objs:[]).filter(o=>o&&T[o.t]&&typeof o.id==='string'&&!seen.has(o.id)&&seen.add(o.id)).slice(0,MAXO).map(o=>({id:o.id,t:o.t,
+    x:int(o.x,0,N-T[o.t].sz,600),y:int(o.y,0,N-T[o.t].sz,600),a:ids.has(o.a)?o.a:'',n:String(o.n||'').slice(0,24),c:/^#[0-9a-f]{6}$/i.test(o.c)?o.c:'',...(o.t==='town'&&+o.p>0?{p:Math.min(1e12,Math.round(+o.p))}:{})}));
   const v=s.view||{};
-  return {v:1,al,act:ids.has(s.act)?s.act:(al[0]?al[0].id:''),objs,
+  return {v:1,kid:int(s.kid,0,99999,0),al,act:ids.has(s.act)?s.act:(al[0]?al[0].id:''),objs,
     view:{x:int(v.x,0,N,600),y:int(v.y,0,N,600),s:Math.min(40,Math.max(.3,+v.s||8))},ignore:!!s.ignore};}
 function loadSaved(){st=clean(KS.read(KEY));}
 let saveT=0;
@@ -70,23 +72,25 @@ const pushUndo=()=>{undo.push(JSON.stringify({al:st.al,objs:st.objs,act:st.act})
 const ck=(x,y)=>x*2048+y;
 function rangeRect(o){const d=T[o.t];if(!d.range)return null;const l=o.x+(d.sz>>1)-(d.range>>1);return [l,o.y+(d.sz>>1)-(d.range>>1),d.range];}
 function cellsOf(o,f){const s=T[o.t].sz;for(let x=o.x;x<o.x+s;x++)for(let y=o.y;y<o.y+s;y++)f(x,y);}
-function touches(cells,claim){for(const k of cells){const x=Math.floor(k/2048),y=k%2048;
-  for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++)if(claim.has(ck(x+i,y+j)))return true;}return false;}
 /* list order = who claimed first */
 function compute(list){const own=new Map(),mine=new Map(),byAl=new Map(),active=new Set(),claims=new Map();
   for(const o of list){const r=rangeRect(o);if(!r||!o.a)continue;const cells=[];
     for(let x=Math.max(0,r[0]);x<Math.min(N,r[0]+r[2]);x++)for(let y=Math.max(0,r[1]);y<Math.min(N,r[1]+r[2]);y++){
       const k=ck(x,y);if(own.has(k)||overlay(x,y))continue;own.set(k,{a:o.a,id:o.id});cells.push(k);}
     mine.set(o.id,cells);if(!byAl.has(o.a))byAl.set(o.a,[]);byAl.get(o.a).push(o);}
-  byAl.forEach((objs,a)=>{const claim=new Set();let wait=[];
-    objs.forEach(o=>{const c=mine.get(o.id);if(o.t==='phq'||o.t==='whq'){if(c.length){active.add(o.id);c.forEach(k=>claim.add(k));}}else if(c.length)wait.push(o);});
-    for(let more=true;more;){more=false;wait=wait.filter(o=>{const c=mine.get(o.id);if(!touches(c,claim))return true;
-      active.add(o.id);c.forEach(k=>claim.add(k));more=true;return false;});}
+  /* flood fill from the HQs: a flag joins when one of its tiles is on or next to (8 neighbours) a claimed tile */
+  byAl.forEach((objs,a)=>{const claim=new Set(),at=new Map(),todo=[];
+    const join=o=>{active.add(o.id);mine.get(o.id).forEach(k=>{if(!claim.has(k)){claim.add(k);todo.push(k);}});};
+    objs.forEach(o=>{const c=mine.get(o.id);if(!c.length)return;if(o.t==='phq'||o.t==='whq')join(o);
+      else c.forEach(k=>{let l=at.get(k);if(!l)at.set(k,l=[]);l.push(o);});});
+    while(todo.length){const k=todo.pop(),x=Math.floor(k/2048),y=k%2048;
+      for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++){const n=ck(x+i,y+j),l=at.get(n);if(!l)continue;at.delete(n);l.forEach(o=>{if(!active.has(o.id))join(o);});}}
     claims.set(a,claim);});
   return {own,mine,active,claims};}
 
-/* why candidate c can't go there ('' = fine). others = every other building, idx = c's place in the list */
-function why(c,others,idx){const d=T[c.t],s=d.sz;
+/* why candidate c can't go there ('' = fine). others = every other building, idx = c's place in the list.
+   pre = compute() of others with c at idx, when the caller has it already (refresh: the plan itself) */
+function why(c,others,idx,pre){const d=T[c.t],s=d.sz;
   if(c.x<0||c.y<0||c.x+s>N||c.y+s>N)return 'Outside the map.';
   let ov='';cellsOf(c,(x,y)=>{const z=overlay(x,y);if(z&&(d.al||z==='castle'))ov=ov||z;});
   if(ov)return d.al?"Alliance buildings can't stand in the castle area, the forbidden ring or the ruins.":"Towns can't stand in the castle area (X and Y 594 to 605).";
@@ -97,8 +101,8 @@ function why(c,others,idx){const d=T[c.t],s=d.sz;
   if(!d.al)return '';
   if(!c.a)return 'Pick an alliance for this building first.';
   if(d.uniq&&others.some(o=>o.a===c.a&&T[o.t].uniq===d.uniq))return d.uniq==='great'?'Each alliance has only one Great building.':`This alliance already has a ${d.n}.`;
-  const list=others.slice();list.splice(idx==null?list.length:idx,0,c);
-  const r=compute(list),claim=r.claims.get(c.a)||new Set();
+  let r=pre;if(!r){const list=others.slice();list.splice(idx==null?list.length:idx,0,c);r=compute(list);}
+  const claim=r.claims.get(c.a)||new Set();
   let foreign=false,inside=true,onOwn=false;
   cellsOf(c,(x,y)=>{const k=ck(x,y),w=r.own.get(k);if(w&&w.a!==c.a)foreign=true;if(claim.has(k))onOwn=true;else inside=false;});
   if(foreign)return "It stands on another alliance's territory.";
@@ -106,7 +110,7 @@ function why(c,others,idx){const d=T[c.t],s=d.sz;
   if(d.full&&!inside)return `${d.n} must be fully inside your alliance territory.`;
   return '';}
 function refresh(){terr=compute(st.objs);bad=new Map();
-  st.objs.forEach((o,i)=>{const others=st.objs.filter(x=>x!==o),r=why(o,others,i);if(r)bad.set(o.id,r);});}
+  st.objs.forEach((o,i)=>{const others=st.objs.filter(x=>x!==o),r=why(o,others,i,terr);if(r)bad.set(o.id,r);});}
 
 /* ---------- view ---------- */
 const cv=$('map'),ctx=cv.getContext('2d'),wrap=$('wrap');
@@ -143,10 +147,13 @@ function paint(){const s=V().s,dark=isDark();
   if(dark){rect(0,0,N,N,'rgba(10,14,20,.28)');}
   const [bx0,by0,bx1,by1]=bbox();
   /* territory */
-  terr.claims.forEach((claim,a)=>{const al=alOf(a);if(!al||!claim.size)return;ctx.beginPath();const edges=[];
-    claim.forEach(k=>{const x=Math.floor(k/2048),y=k%2048;if(x<bx0-1||x>bx1||y<by0-1||y>by1)return;poly(x,y,x+1,y+1);
+  terr.claims.forEach((claim,a)=>{const al=alOf(a);if(!al||!claim.size)return;ctx.beginPath();const edges=[],rows=new Map();
+    claim.forEach(k=>{const x=Math.floor(k/2048),y=k%2048;if(x<bx0-1||x>bx1||y<by0-1||y>by1)return;
+      let r=rows.get(y);if(!r)rows.set(y,r=[]);r.push(x);
       if(!claim.has(ck(x-1,y)))edges.push([x,y,x,y+1]);if(!claim.has(ck(x+1,y)))edges.push([x+1,y,x+1,y+1]);
       if(!claim.has(ck(x,y-1)))edges.push([x,y,x+1,y]);if(!claim.has(ck(x,y+1)))edges.push([x,y+1,x+1,y+1]);});
+    /* one strip per run of tiles in a row: far fewer shapes than one per tile */
+    rows.forEach((xs,y)=>{xs.sort((p,q)=>p-q);let x0=xs[0],x1=x0;for(let i=1;i<=xs.length;i++){if(xs[i]===x1+1){x1++;continue;}poly(x0,y,x1+1,y+1);x0=x1=xs[i];}});
     ctx.fillStyle=hexA(al.color,.3);ctx.fill();ctx.beginPath();edges.forEach(([x0,y0,x1,y1])=>{const p=P(x0,y0),q=P(x1,y1);ctx.moveTo(p[0],p[1]);ctx.lineTo(q[0],q[1]);});
     ctx.strokeStyle=al.color;ctx.lineWidth=Math.min(2.5,Math.max(1,s/4));ctx.stroke();});
   /* grid */
@@ -165,6 +172,7 @@ function paint(){const s=V().s,dark=isDark();
     rect(o.x,o.y,o.x+d.sz,o.y+d.sz,o.t==='town'?hexA(c,moving?.25:.75):(moving?hexA(c,.3):c),o.t==='town'?'#1b2027':'#111',o.t==='town'?1:1.5);
     if(o.t.startsWith('trap'))rect(o.x+.6,o.y+.6,o.x+2.4,o.y+2.4,'rgba(255,255,255,.35)');
     if(bad.has(o.id))rect(o.x-.15,o.y-.15,o.x+d.sz+.15,o.y+d.sz+.15,null,'#d01c1c',2,[4,3]);});
+  if(jlArea)rect(jlArea[0],jlArea[1],jlArea[2]+1,jlArea[3]+1,null,'rgba(255,255,255,.85)',1.5,[8,6]);   /* last square loaded from Jeabslist */
   /* selection and ghost */
   const so=selObj();
   if(so){const r=rangeRect(so);if(r)rect(r[0],r[1],r[0]+r[2],r[1]+r[2],null,'#fff',1.5,[6,4]);
@@ -192,7 +200,8 @@ function cellAt(e){const r=cv.getBoundingClientRect(),[wx,wy]=toWorld(e.clientX-
 function objAt(x,y){for(let i=st.objs.length-1;i>=0;i--){const o=st.objs[i],s=T[o.t].sz;if(x>=o.x&&x<o.x+s&&y>=o.y&&y<o.y+s)return o;}
   if(x>=594&&x<606&&y>=594&&y<606)return 'castle';return null;}
 function candidate(t,x,y,a){const s=T[t].sz,o=(s-1)>>1;return {id:'__new',t,x:x-o,y:y-o,a:T[t].al||t==='town'?a:'',n:''};}
-function place(t,x,y){const c=candidate(t,x,y,st.act),r=why(c,st.objs);
+function place(t,x,y){if(st.objs.length>=MAXO){say(`${MAXO} buildings and towns at most on one plan.`,'err');return;}
+  const c=candidate(t,x,y,st.act),r=why(c,st.objs);
   if(r&&!st.ignore){say(r,'err');return;}
   change(()=>{c.id=newId('o');st.objs.push(c);});
   if(t!=='town'&&t!=='flag'){sel=c.id;setTool('select');}
@@ -269,6 +278,7 @@ document.addEventListener('keydown',e=>{if(/^(INPUT|TEXTAREA|SELECT)$/.test(e.ta
 function del(o){change(()=>{st.objs=st.objs.filter(x=>x!==o);});sel=null;drawSel();say(`${objName(o)} deleted.`,'ok');}
 
 /* ---------- selected panel ---------- */
+const fmtPow=v=>v>=1e9?(v/1e9).toFixed(2)+'B':v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?Math.round(v/1e3)+'K':String(v);
 const dist=(o)=>{const s=T[o.t].sz;return Math.hypot(o.x+s/2-600,o.y+s/2-600);};
 function alOptions(cur,none){return (none?`<option value=""${cur?'':' selected'}>No alliance</option>`:'')+st.al.map(a=>`<option value="${a.id}"${a.id===cur?' selected':''}>${esc(alName(a))}</option>`).join('');}
 function townsBlock(){return `<div class="mp-towns"><h3>Towns around it, in order</h3>
@@ -278,7 +288,7 @@ function townsBlock(){return `<div class="mp-towns"><h3>Towns around it, in orde
   <div class="mp-row"><label class="field"><span class="label">or how many blank towns</span><input id="tw-n" type="number" min="1" max="200" value="10"></label>
   <label class="field"><span class="label">New towns' alliance</span><select id="tw-al">${alOptions(st.act,true)}</select></label>
   <label class="field"><span class="label">Gap between towns</span><select id="tw-gap"><option value="0">None</option><option value="1">1 tile</option></select></label></div>
-  <div class="btns" style="margin-top:8px"><button id="tw-go" type="button" class="primary">Arrange</button><button id="tw-load" type="button">Load the towns around it</button></div></div>`;}
+  <div class="btns" style="margin-top:8px"><button id="tw-go" type="button" class="primary">Arrange</button><button id="tw-load" type="button">Load the towns around it</button>${st.objs.some(o=>o.p)?'<button id="tw-pow" type="button" title="Uses the power loaded from Jeabslist">Sort by power</button>':''}</div></div>`;}
 /* rectangle of the building towns are arranged around (castle = its 6×6) */
 const anchorOf=o=>o?{x:o.x,y:o.y,sz:T[o.t].sz,id:o.id}:{x:CASTLE.x,y:CASTLE.y,sz:CASTLE.sz,id:'castle'};
 /* tiles between a sz×sz block at (x,y) and the anchor, counted in square rings (0 = touching) */
@@ -293,6 +303,13 @@ function loadTowns(){const b=anchorOf(selObj()),list=townsAround(b);
   if(!list.length){say('No towns around it yet.','warn');return;}
   $('tw-names').value=list.map(t=>t.n||'').join('\n');
   say(`${list.length} towns listed, closest first.${list.some(t=>!t.n)?' Towns without a name show as empty lines and stay where they are.':''}`,'ok');}
+/* names in the box, strongest first: power of the town with that name (loaded from Jeabslist); unknown ones keep their order at the end */
+function sortByPower(){const lines=$('tw-names').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  if(!lines.length){say('List the players first (or press Load the towns around it).','warn');return;}
+  const pw=new Map();st.objs.forEach(o=>{if(o.t==='town'&&o.n&&o.p){const k=o.n.toLowerCase();pw.set(k,Math.max(pw.get(k)||0,o.p));}});
+  const r=lines.map((n,i)=>[n,pw.get(n.toLowerCase())||0,i]).sort((a,b)=>b[1]-a[1]||a[2]-b[2]);
+  $('tw-names').value=r.map(x=>x[0]).join('\n');const miss=r.filter(x=>!x[1]).length;
+  say(`Sorted strongest first.${miss?` ${miss} player${miss>1?'s':''} without a known power stay${miss>1?'':'s'} at the end.`:''} Press Arrange to place them.`,miss?'warn':'ok');}
 function placeTowns(){const b=anchorOf(selObj());
   const lines=$('tw-names').value.split('\n').map(s=>s.trim().slice(0,24)),names=lines.filter(Boolean);
   const n=names.length||int($('tw-n').value,1,200,10),a=$('tw-al').value,gap=+$('tw-gap').value;
@@ -329,7 +346,7 @@ function drawSel(){const el=$('sel'),o=selObj();
    <label class="field"><span class="label">Y</span><input id="s-y" type="number" min="0" max="${N-d.sz}" value="${o.y}"></label></div>
   <div class="mp-row mp-colrow"><label class="mp-inl">Marker colour <input id="s-c" type="color" value="${o.c||colorOf(o)}"></label>${o.c?'<button id="s-c0" type="button">Use alliance colour</button>':''}</div>
   <p class="msg ${r?'err':'ok'}">${r?esc(r):'Placement OK.'}</p>
-  <p class="mp-note">${Math.round(dist(o))} tiles from the castle${d.range&&own?` · ${act?`claims ${own.length} tiles`:'not connected: claims nothing'}`:''}</p>
+  <p class="mp-note">${o.p?`Power ${fmtPow(o.p)} (Jeabslist) · `:''}${Math.round(dist(o))} tiles from the castle${d.range&&own?` · ${act?`claims ${own.length} tiles`:'not connected: claims nothing'}`:''}</p>
   <div class="btns"><button id="s-center" type="button">Show on map</button><button id="s-del" type="button">Delete</button></div>
   ${o.t==='town'||o.t==='flag'?'':townsBlock()}`;}
 $('sel').addEventListener('focusin',e=>{if(e.target.id==='s-n')pushUndo();});
@@ -345,7 +362,8 @@ $('sel').addEventListener('click',e=>{const o=selObj();
   else if(e.target.id==='s-del'&&o)del(o);
   else if(e.target.id==='s-c0'&&o)change(()=>{o.c='';});
   else if(e.target.id==='tw-go')placeTowns();
-  else if(e.target.id==='tw-load')loadTowns();});
+  else if(e.target.id==='tw-load')loadTowns();
+  else if(e.target.id==='tw-pow')sortByPower();});
 
 /* ---------- alliances & list ---------- */
 function drawAls(){const el=$('als');
@@ -376,15 +394,102 @@ function drawList(){const groups=[...st.al.map(a=>[a,st.objs.filter(o=>o.a===a.i
     :'<p class="mp-empty">Nothing built yet.</p>';}
 $('list').addEventListener('click',e=>{const b=e.target.closest('[data-id]');if(b)select(b.dataset.id,true);});
 
+/* ---------- Jeabslist: the real kingdom map (Jeabs Plus+ Premium) ----------
+   GET /kingdoms/{kid}/map: entities {type,x,y,footprint,alliance (tag),alliance_id,seen_at,unconfirmed?}; x,y = lowest tile
+   like ours (castle 597,597). city = town (name, player_id, power), alliance_hall = HQ (Plain or Wilderness by where it
+   stands), alliance_trap conf_id 4 = Trap 1, 19 = Trap 2 (checked on the OPS map), alliance_resource = Great building
+   (kind not given). Mines, forts, towers and the castle aren't planner buildings.
+   "My alliance" (alliance_id) is a stored read and replaces the plan; "the area in view" (square r 30 around the view
+   centre) may start a live scan (player's quota) and replaces what the plan had in that square. */
+const JL_R=30,TRAP_CONF={4:'trap1',19:'trap2'};
+let jlArea=null,jlBusy=false;   /* last loaded square [x0,y0,x1,y1], drawn dashed */
+function jlNote(html){$('jl-note').innerHTML=html;}
+function jlState(){if(!window.JL)return;const acc=window.KSAccounts&&KSAccounts.linked(),tok=JL.hasToken();
+  if(!st.kid&&acc&&acc.kingdom)st.kid=+acc.kingdom;
+  if(document.activeElement!==$('jl-kid'))$('jl-kid').value=st.kid||'';
+  $('jl-al').disabled=$('jl-area').disabled=jlBusy||!tok;
+  jlNote(!tok?'Add your Jeabslist API token (Jeabs Plus+ Premium) in the account menu to load the real map. <button type="button" class="jl-lnk" data-jl-open>Open the account menu</button>'
+    :!acc?'<i>My alliance</i> needs this game account linked to your Governor ID. <button type="button" class="jl-lnk" data-jl-open>Open the account menu</button>'
+    :`Linked to ${esc(acc.name||'your governor')}${acc.alliance?` [${esc(acc.alliance)}]`:''}.`);}
+const ago=iso=>{const t=Date.parse(iso);if(!t)return '';const m=Math.round((Date.now()-t)/6e4);
+  return m<2?'just now':m<90?`${m} min ago`:m<48*60?`${Math.round(m/60)} h ago`:`${Math.round(m/1440)} days ago`;};
+/* Jeabslist entities → plan objects; alliances matched by tag (any case) in al, new ones added */
+function fromJeabs(ents,al){const objs=[],trapsOf=new Map();let other=0,noAl=0,unconf=0;
+  const alFor=tag=>{tag=String(tag||'').trim().slice(0,4);if(!tag)return '';const low=tag.toLowerCase();
+    let a=al.find(x=>x.tag.toLowerCase()===low);
+    if(!a){if(al.length>=20){noAl++;return '';}const used=new Set(al.map(x=>x.color));
+      a={id:'j'+(al.length+1)+Math.random().toString(36).slice(2,6),tag,name:'',color:COLORS.find(c=>!used.has(c))||COLORS[al.length%COLORS.length]};al.push(a);}
+    return a.id;};
+  const rank={alliance_hall:0,alliance_flag:1,alliance_trap:2,alliance_resource:3,city:4};   /* list order = who claims first */
+  (Array.isArray(ents)?ents:[]).filter(e=>e&&e.type in rank&&Number.isFinite(+e.x)&&Number.isFinite(+e.y)).sort((a,b)=>rank[a.type]-rank[b.type]).forEach(e=>{
+    const x=Math.round(+e.x),y=Math.round(+e.y),a=alFor(e.alliance);let t;
+    if(e.type==='city')t='town';
+    else if(e.type==='alliance_flag')t='flag';
+    else if(e.type==='alliance_hall')t=base(x+1,y+1)==='badland'?'whq':'phq';
+    else if(e.type==='alliance_resource')t='great';
+    else{const have=trapsOf.get(a)||[];t=TRAP_CONF[e.conf_id]&&!have.includes(TRAP_CONF[e.conf_id])?TRAP_CONF[e.conf_id]:(have.includes('trap1')?'trap2':'trap1');have.push(t);trapsOf.set(a,have);}
+    if(e.unconfirmed)unconf++;
+    objs.push({id:'',t,x,y,a,n:t==='town'?String(e.name||'').trim().slice(0,24):'',c:'',p:t==='town'?+e.power||0:0});});
+  other=(Array.isArray(ents)?ents.length:0)-objs.length;
+  return {objs,other,noAl,unconf};}
+async function jlLoad(kind){if(!window.JL||jlBusy)return;
+  const kid=int($('jl-kid').value,1,99999,0);if(!kid){say('Enter the kingdom number first.','err');return;}
+  st.kid=kid;save();
+  const acc=window.KSAccounts&&KSAccounts.linked(),gen=KS.gen();let q,area=null;
+  if(kind==='al'){if(!acc){say('Link this game account to your Governor ID first (account menu).','err');return;}}
+  else{const v=V();q={x:Math.round(v.x),y:Math.round(v.y),r:JL_R,refresh:$('jl-fresh').checked};}
+  jlBusy=true;jlState();
+  try{
+    if(kind==='al'){say('Asking Jeabslist for your alliance…','');const p=await JL.player(acc.fid);
+      if(gen!==KS.gen())return;if(!p.allianceId){say('Jeabslist shows no alliance for this governor.','warn');return;}
+      q={alliance:p.allianceId};}
+    else say(`Loading the square X ${q.x-JL_R} to ${q.x+JL_R}, Y ${q.y-JL_R} to ${q.y+JL_R} of kingdom #${kid}…`,'');
+    let d=await JL.kingdomMap(kid,q);if(gen!==KS.gen())return;
+    if(d&&d.refresh==='queued'){const s=Math.min(60,Math.max(3,+d.retry_after_sec||10));
+      say(`Jeabslist is scanning this area live: loading it again in ${s} seconds…`,'');
+      await new Promise(r=>setTimeout(r,s*1e3));if(gen!==KS.gen())return;
+      d=await JL.kingdomMap(kid,{...q,refresh:false,cached:true});if(gen!==KS.gen())return;}
+    const ents=d&&Array.isArray(d.entities)?d.entities:[];
+    if(kind==='al'){const al=[],r=fromJeabs(ents,al);if(!r.objs.length){say('Jeabslist has nothing stored for this alliance in this kingdom yet.','warn');return;}
+      const mine=al.find(a=>acc.alliance&&a.tag.toLowerCase()===String(acc.alliance).toLowerCase());
+      const objs=r.objs.slice(0,MAXO);objs.forEach((o,i)=>{o.id='o'+i.toString(36);});
+      jlArea=null;
+      load(clean({al,act:(mine||al[0]).id,objs,kid,view:st.view,ignore:st.ignore}),jlSummary(d,r,objs.length,'Your alliance loaded from the game')+' Undo brings back your previous map.');
+      centerOnPlan();}
+    else{const b=d&&d.region&&Array.isArray(d.region.bbox)?d.region.bbox:[q.x-JL_R,q.y-JL_R,q.x+JL_R,q.y+JL_R];area=b.map(Number);
+      const al=st.al.map(a=>({...a})),r=fromJeabs(ents,al);
+      change(()=>{st.al=al;const inA=o=>o.x>=area[0]&&o.x<=area[2]&&o.y>=area[1]&&o.y<=area[3];
+        const add=r.objs,hit=o=>add.some(n=>o.x<n.x+T[n.t].sz&&n.x<o.x+T[o.t].sz&&o.y<n.y+T[n.t].sz&&n.y<o.y+T[o.t].sz);
+        const keep=st.objs.filter(o=>!inA(o)&&!hit(o)),room=Math.max(0,MAXO-keep.length);
+        add.slice(0,room).forEach(o=>{o.id=newId('o');});
+        /* alliance buildings before towns so they claim first, like a fresh load */
+        st.objs=[...keep.filter(o=>o.t!=='town'),...add.slice(0,room).filter(o=>o.t!=='town'),...keep.filter(o=>o.t==='town'),...add.slice(0,room).filter(o=>o.t==='town')];
+        if(!alOf(st.act)&&st.al[0])st.act=st.al[0].id;
+        r.cut=add.length-room;});
+      jlArea=area;writeInputs();drawSel();
+      say(jlSummary(d,r,r.objs.length-(r.cut>0?r.cut:0),'Area loaded from the game')+(r.cut>0?` ${r.cut} didn't fit (${MAXO} at most on one plan).`:'')+' It replaced what your plan had in that square; Undo puts it back.',r.cut>0?'warn':'ok');draw();}
+  }catch(e){if(gen===KS.gen())say(e.message||"Couldn't load the map from Jeabslist.",'err');}
+  finally{jlBusy=false;jlState();}}
+function jlSummary(d,r,n,head){const c={};r.objs.slice(0,n).forEach(o=>{const k=o.t==='town'?'towns':o.t==='flag'?'flags':'buildings';c[k]=(c[k]||0)+1;});
+  const parts=['towns','flags','buildings'].filter(k=>c[k]).map(k=>`${c[k]} ${c[k]===1?k.slice(0,-1):k}`);
+  const seen=d&&(d.observed_at||(Array.isArray(d.entities)?d.entities.map(e=>e&&e.seen_at||'').sort().pop():''));
+  const when=seen?` Last seen by Jeabslist ${ago(seen)}${d.stale?' (may be out of date)':''}.`:'';
+  return `${head}: ${parts.join(', ')||'nothing'}.${when}${r.unconf?` ${r.unconf} not confirmed by the last scan.`:''}${r.noAl?` ${r.noAl} without alliance (20 alliances at most).`:''}`;}
+if(window.JL){$('jl-box').hidden=false;
+  $('jl-al').addEventListener('click',()=>jlLoad('al'));$('jl-area').addEventListener('click',()=>jlLoad('area'));
+  $('jl-kid').addEventListener('change',()=>{st.kid=int($('jl-kid').value,0,99999,0);save();});
+  $('jl-box').addEventListener('click',e=>{if(e.target.closest('[data-jl-open]')&&window.KSAccounts)KSAccounts.open();});
+  window.addEventListener('ks-account-linked',jlState);window.addEventListener('storage',jlState);}
+
 /* ---------- share code, picture, reset ---------- */
 function pack(){const ai=new Map(st.al.map((a,i)=>[a.id,i]));
-  const p={v:1,al:st.al.map(a=>[a.tag,a.name,a.color]),o:st.objs.map(o=>{const r=[o.t,o.x,o.y,ai.has(o.a)?ai.get(o.a):-1];if(o.n||o.c)r.push(o.n);if(o.c)r.push(o.c);return r;})};
+  const p={v:1,al:st.al.map(a=>[a.tag,a.name,a.color]),o:st.objs.map(o=>{const r=[o.t,o.x,o.y,ai.has(o.a)?ai.get(o.a):-1];if(o.n||o.c||o.p)r.push(o.n);if(o.c||o.p)r.push(o.c);if(o.p)r.push(o.p);return r;})};
   return 'KSM1:'+btoa(unescape(encodeURIComponent(JSON.stringify(p)))).replace(/=+$/,'');}
 function unpack(code){const m=String(code).trim().match(/^KSM1:(.+)$/is);if(!m)throw new Error('Paste a code starting with KSM1:');
   let p;try{p=JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/\s+/g,'')))));}catch(e){throw new Error('This code is damaged: copy it again.');}
   if(!p||!Array.isArray(p.al)||!Array.isArray(p.o))throw new Error('This code is damaged: copy it again.');
   const al=p.al.map((a,i)=>({id:'a'+(i+1),tag:a[0],name:a[1],color:a[2]}));
-  return clean({al,act:al[0]&&al[0].id,objs:p.o.map((o,i)=>({id:'o'+i.toString(36),t:o[0],x:o[1],y:o[2],a:o[3]>=0&&al[o[3]]?al[o[3]].id:'',n:o[4]||'',c:o[5]||''})),view:st.view,ignore:st.ignore});}
+  return clean({al,act:al[0]&&al[0].id,objs:p.o.map((o,i)=>({id:'o'+i.toString(36),t:o[0],x:o[1],y:o[2],a:o[3]>=0&&al[o[3]]?al[o[3]].id:'',n:o[4]||'',c:o[5]||'',p:o[6]||0})),kid:st.kid,view:st.view,ignore:st.ignore});}
 /* kingshot.me map planner: its "Export Map" file (or the JSON of a shared map) */
 const KME={town:'town',plain_hq:'phq',wilderness_hq:'whq',alliance_flag:'flag',hunting_trap_1:'trap1',hunting_trap_2:'trap2',
   great_resource_bread:'gbread',great_resource_wood:'gwood',great_resource_stone:'gstone',great_resource_iron:'giron'};
@@ -398,8 +503,8 @@ function fromKingshotMe(text){let j;try{j=JSON.parse(text);}catch(e){throw new E
   const objs=[];let skipped=0;
   s.objects.forEach(o=>{const t=o&&KME[o.type];if(!t){skipped++;return;}const nm=String(o.name||'').trim();
     objs.push({id:'o'+objs.length.toString(36),t,x:o.x,y:o.y,a:ids.get(o.allianceId)||'',n:KME_DEFAULT.test(nm)?'':nm,c:o.customColor||''});});
-  if(objs.length>600)skipped+=objs.length-600;
-  return {s:clean({al,act:al[0]&&al[0].id,objs,view:st.view,ignore:st.ignore}),skipped};}
+  if(objs.length>MAXO)skipped+=objs.length-MAXO;
+  return {s:clean({al,act:al[0]&&al[0].id,objs,kid:st.kid,view:st.view,ignore:st.ignore}),skipped};}
 function centerOnPlan(){const o=st.objs.find(q=>q.t.startsWith('trap'))||st.objs[0];if(o)centerOn(o.x+T[o.t].sz/2,o.y+T[o.t].sz/2,6);}
 function importKme(text){try{const r=fromKingshotMe(text);load(r.s,`kingshot.me map imported: ${r.s.objs.length} buildings and towns${r.skipped?`, ${r.skipped} things skipped (not on this planner)`:''}. Undo brings back your previous map.`);centerOnPlan();}
   catch(e){say(e.message,'err');}}
@@ -410,7 +515,7 @@ $('kme-file').addEventListener('change',e=>{const f=e.target.files&&e.target.fil
 const EX=window.MAP_EXAMPLES||[];
 $('ex').innerHTML='<option value="">Load an example…</option>'+EX.map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join('');
 $('ex').addEventListener('change',e=>{const ex=EX.find(x=>x.id===e.target.value);e.target.value='';if(!ex)return;
-  const r=ex.state();r.objs.forEach((o,i)=>{o.id='o'+i.toString(36);});r.act=r.al[0]?r.al[0].id:'';r.view=st.view;r.ignore=st.ignore;
+  const r=ex.state();r.objs.forEach((o,i)=>{o.id='o'+i.toString(36);});r.act=r.al[0]?r.al[0].id:'';r.kid=st.kid;r.view=st.view;r.ignore=st.ignore;
   load(clean(r),`Example loaded: ${ex.desc} Undo brings back your previous map.`);const [x,y]=ex.center;const v=V();v.x=x;v.y=y;v.s=8;saveSoon();draw();});   /* same zoom as a new map, so every plan shows squares at one size */
 function load(s,txt){pushUndo();const view=st.view;st=s;st.view=view;sel=null;writeInputs();after();say(txt,'ok');}
 $('btn-import').addEventListener('click',()=>{const v=$('code').value.trim();if(v.startsWith('{')){importKme(v);return;}
@@ -420,16 +525,16 @@ $('btn-link').addEventListener('click',()=>KS.copyCode(location.href.split('#')[
 $('btn-png').addEventListener('click',()=>{const was=sel;sel=null;ghost=null;paint();cv.toBlob(b=>{sel=was;draw();if(!b){say('Your browser refused to make the picture.','err');return;}
   const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`ks-map-${new Date().toISOString().slice(0,10)}.png`;document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),5000);say('Picture of the current view downloaded.','ok');},'image/png');});
-KS.confirmButton($('btn-clear'),()=>{pushUndo();const view=st.view;st=blank();st.view=view;sel=null;writeInputs();after();say('Map reset. Undo brings it back.','ok');});
+KS.confirmButton($('btn-clear'),()=>{pushUndo();const view=st.view,kid=st.kid;st=blank();st.view=view;st.kid=kid;sel=null;writeInputs();after();say('Map reset. Undo brings it back.','ok');});
 function fromHash(){const h=decodeURIComponent(location.hash.slice(1));if(!/^KSM1:/i.test(h))return;
   try{load(unpack(h),'Map loaded from the link. Undo brings back your previous map.');history.replaceState(null,'',location.pathname);}catch(e){say(e.message,'err');}}
 window.addEventListener('hashchange',fromHash);
 function writeInputs(){$('ignore').checked=st.ignore;}
 
 /* ---------- boot ---------- */
-loadSaved();writeInputs();refresh();setTool('select');drawSel();drawList();drawAls();
+loadSaved();writeInputs();refresh();setTool('select');drawSel();drawList();drawAls();jlState();
 new ResizeObserver(resize).observe(wrap);resize();fromHash();
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
 /* game account switch (assets/accounts.js) */
-window.KSPage={flush(){if(saveT)save();},reload(){loadSaved();undo=[];sel=null;ghost=null;writeInputs();refresh();drawSel();drawList();drawAls();draw();say('','ok');}};
+window.KSPage={flush(){if(saveT)save();},reload(){loadSaved();undo=[];sel=null;ghost=null;jlArea=null;writeInputs();jlState();refresh();drawSel();drawList();drawAls();draw();say('','ok');}};
 })();

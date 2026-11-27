@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kingshot Alliance Map Planner | KS Tools</title>
-<meta name="description" content="Free Kingshot alliance map planner: place towns, alliance HQs, flags and Hunting Traps around the King's Castle, see your territory and share the plan with your alliance.">
+<meta name="description" content="Free Kingshot alliance map planner: load your alliance from the game, place towns, alliance HQs, flags and Hunting Traps around the King's Castle, see your territory and share the plan with your alliance.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Kingshot Alliance Map Planner | KS Tools">
 <meta property="og:description" content="Free Kingshot alliance map planner: place towns, alliance HQs, flags and Hunting Traps around the King's Castle, see your territory and share the plan with your alliance.">
@@ -33,10 +33,24 @@
     <h2 id="h-start">Start here</h2>
     <ol class="howto">
       <li><b>Already planned on kingshot.me?</b> Press <i>Export Map</i> there, then <i>Open kingshot.me file</i> here.</li>
+      <li><b>Load the real map:</b> with a Jeabs Plus+ Premium token, load your alliance's towns, flags, HQs and traps as they stand in the game, or the area you're looking at.</li>
       <li><b>Build:</b> pick a building and click the map. HQs first, then flags to grow the territory, then Hunting Traps inside it. An alliance is ready; add more only if you plan for several.</li>
       <li><b>Order your players:</b> select a trap or the castle, paste the player names strongest first and press <i>Arrange</i>: they fill a square around it, closest first. Drag a town onto another to swap them.</li>
       <li><b>Share:</b> copy the code or link and post it in your alliance chat. Opening it loads the whole map.</li>
     </ol>
+    <div class="jl-pick mp-jl" id="jl-box" hidden>
+      <p class="jl-h"><span class="chip">Jeabslist</span> Load the real map from the game</p>
+      <div class="mp-row">
+        <label class="field mp-kid"><span class="label">Kingdom</span><input id="jl-kid" type="number" min="1" max="99999" placeholder="1674"></label>
+        <div class="btns">
+          <button id="jl-al" type="button" title="Your alliance's towns, flags, HQs, traps and Great building. Replaces your map (Undo brings it back).">Load my alliance</button>
+          <button id="jl-area" type="button" title="Everything within 30 tiles of the centre of the map view. Replaces what your plan had in that square.">Load the area in view</button>
+          <label class="mp-inl mp-chk" title="Scan again if Jeabslist's data is older than 15 minutes (instead of 6 hours)"><input id="jl-fresh" type="checkbox"> Fresh scan</label>
+        </div>
+      </div>
+      <p class="mp-note" id="jl-note"></p>
+      <p class="mp-note">The area is the 61×61 square around the centre of the map view. Its data is scanned live when older than 6 hours (15 minutes with <i>Fresh scan</i>): Jeabslist allows 6 live scans per hour and 40 per day per account.</p>
+    </div>
     <label class="field"><span class="label">Paste a map code</span>
       <textarea id="code" spellcheck="false" placeholder="Paste a KSM1: code (or a kingshot.me map JSON), then press Import code"></textarea>
     </label>

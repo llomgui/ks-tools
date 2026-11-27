@@ -645,6 +645,10 @@ body.mp-lock{overflow:hidden}
 .mp-kv{margin:0 0 10px}
 .mp-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px}
 .mp-row .field{flex:1 1 120px}
+.mp-jl{margin:0 0 14px}
+.mp-jl .mp-row{align-items:flex-end}
+.mp-jl .mp-kid{flex:0 0 110px}
+.mp-jl .btns{flex:1 1 300px;align-items:center}
 .mp-towns{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
 .mp-towns h3,.mp-grp h3{font-size:.95rem;margin:0 0 6px}
 .mp-al{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--line)}
