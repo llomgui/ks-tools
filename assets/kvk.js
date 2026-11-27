@@ -38,7 +38,11 @@ const T=[
   {k:'pet',n:'Pet Advancement score',g:'Pets',p:50,d:[3,5],h:'Score gained by advancing pets'},
   {k:'ggc',n:'Charm Score',g:'Governor',p:70,d:[1,3,4],h:'From your Charms plan'},
   {k:'gg',n:'Governor Gear Score',g:'Governor',p:36,d:[5],h:'From your Governor Gear materials'},
-  {k:'intel',n:'Intel missions a day',g:'Missions',p:6000,d:[1,3,5],h:'Count each of days 1, 3 and 5'}];
+  {k:'intel',n:'Intel missions a day',g:'Missions',p:6000,d:[1,3,5],h:'Count each of days 1, 3 and 5'},
+  /* gathering: 2 points per 1,000 bread or wood, per 200 stone or per 50 iron, on days 2, 4 and 5; Kingshot
+     Optimizer counts a full march at about 14,000 points. Gems don't score in KvK (only in Alliance Brawl). */
+  {k:'gat',n:'Gathering marches a day',g:'Missions',p:14000,d:[2,4,5],h:'Marches × returns each day, about 14,000 points a full march. Count each of days 2, 4 and 5'}];
+const DAILY=['intel','gat'];   /* entered per day, scored on each of their days */
 const TK={};T.forEach(t=>TK[t.k]=t);
 const GROUPS=[...new Set(T.map(t=>t.g))];
 
@@ -111,7 +115,7 @@ function plan(){
   const flex=[];
   st.troops.forEach((x,i)=>{if(x.n>0&&trPts(x)>0){use[4]['trn'+i]=x.n;pts[4]+=x.n*trPts(x);}});
   T.forEach(t=>{const n=units(t);if(!n||!ptsOf(t))return;
-    if(t.k==='intel'){t.d.forEach(d=>add(d,'intel',n));return;}
+    if(DAILY.includes(t.k)){t.d.forEach(d=>add(d,t.k,n));return;}
     if(t.d.length===1){add(t.d[0],t.k,n);return;}
     flex.push({t,left:n,u:ptsOf(t)});});
   /* reach milestone 1 on every day it can be reached, then 2, then 3 */
@@ -156,6 +160,7 @@ const dayDate=d=>{if(!st.start)return '';const x=new Date(st.start+'T00:00:00');
 function qtyTxt(t,n){
   if(t.mul===1440){const dd=n/1440;return dd>=1?`${+dd.toFixed(1)} days`:n>=60?`${+(n/60).toFixed(1)} h`:`${n} min`;}
   if(t.k==='intel')return `${fmt(n)} missions`;
+  if(t.k==='gat')return `${fmt(n)} marches`;
   return fmt(n);}
 function render(){
   const p=plan();let total=0,ms=0,best=1;
@@ -182,7 +187,8 @@ function render(){
     if(!st.inv.ggc)notes.push('<p>No Charm Score yet: plan your charms on the <a href="../charms/">Charms page</a>, it scores on days 1, 3 and 4.</p>');
     if(!st.inv.gg)notes.push('<p>No Governor Gear Score yet: enter your gear and materials on the <a href="../governor-gear/">Governor Gear page</a>, it scores on day 5.</p>');
     if(st.inv.tg||st.inv.tgt)notes.push('<p>Truegold counts only when spent on building upgrades: start them on the day shown, with your speedups ready.</p>');
-    if(st.inv.intel)notes.push('<p>Intel missions are counted on days 1, 3 and 5 at the number you entered for each day.</p>');}
+    if(st.inv.intel)notes.push('<p>Intel missions are counted on days 1, 3 and 5 at the number you entered for each day.</p>');
+    if(st.inv.gat)notes.push('<p>Gathering is counted on days 2, 4 and 5 at the marches you entered for each day: send them out early so they come back before the day ends.</p>');}
   $('notes').innerHTML=notes.join('');$('notes').hidden=!notes.length;
   drawPast(total);
   if(document.activeElement!==$('code'))$('code').value=exportCode();
