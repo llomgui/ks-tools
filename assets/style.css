@@ -587,3 +587,17 @@ body.is-updating .upd{display:inline-block;animation:upd 1s ease-in-out infinite
 .jl-gear span{font-family:var(--mono);font-size:.76rem;background:var(--sunk);border-radius:5px;padding:2px 6px}
 .jl-gear small{color:var(--muted)}
 .jl-none{font-size:.78rem;color:var(--muted)}
+/* KvK: Jeabslist dates, opponent and past preps */
+.jl-kvk{margin-top:12px;font-size:.88rem}
+.jl-kvk:empty{display:none}
+.jl-kvk p{margin:0 0 6px}
+.jl-kvk .jl-h{margin-bottom:8px}
+.jl-kvk .bad{color:var(--red)}
+.jl-kvk b.down{color:var(--red)}
+.jl-wait{color:var(--muted)}
+.jl-lnk{border:0;background:none;padding:0;color:var(--ember);font-weight:600;text-decoration:underline;cursor:pointer;font-size:inherit}
+.jl-foot{font-size:.8rem;color:var(--muted)}
+.jl-past{margin-top:16px}
+.jl-ptab td small{display:block;font-size:.7rem;color:var(--muted)}
+.jl-ptab td:nth-child(2) small{display:inline}
+.jl-miss{color:var(--muted);font-style:italic}

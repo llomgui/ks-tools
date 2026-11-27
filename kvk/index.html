@@ -63,6 +63,7 @@
         <div class="res">
           <label class="field"><span class="label">Preparation day 1</span><input id="r-start" type="date"><span class="hint">Optional: shows the date of each day</span></label>
         </div>
+        <div id="jl-kvk" class="jl-kvk" aria-live="polite"></div>
       </section>
     </div>
 
@@ -76,6 +77,7 @@
         </div>
         <div id="days"></div>
         <div class="notes" id="notes"></div>
+        <div id="jl-past" class="jl-past" hidden></div>
         <details>
           <summary>Points per item and how the plan is made</summary>
           <p>Items that score on several days (speedups, Truegold, Mithril, hero shards…) give the same points whichever day you use them. The planner first puts single-day items on their day, then spends the flexible ones to reach each day's first milestone, then the second, then the third, so as many milestones as possible are reached. What's left goes to the day with the fewest points.</p>
