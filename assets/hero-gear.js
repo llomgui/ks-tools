@@ -410,6 +410,45 @@ $('btn-export').addEventListener('click',()=>{
   const fallback=()=>{$('code').focus();$('code').select();say('Code is in the box above, selected. Copy it from there.','ok');};
   try{navigator.clipboard.writeText(code).then(done,fallback)}catch(e){fallback()}
 });
+/* ---------- Jeabslist import: your 12 pieces from your heroes' gear ----------
+   The page plans one set of gear per troop type; Jeabslist lists every hero. Per troop type we pick the hero
+   placed first in your formation (lowest position), and the player can change it. Materials are not in the API. */
+let jlData=null;
+const jlLv=g=>g[2]==='R'?`R+${g[0]-100}`:`+${g[0]}`;
+const jlHeroOpts=(t,sel)=>jlData.heroes.filter(h=>h.troop===t.k).sort((a,b)=>(a.pos||99)-(b.pos||99))
+  .map(h=>`<option value="${h.id}"${h.id===sel?' selected':''}>${h.name}${h.pos?` · formation ${h.pos}`:''}</option>`).join('');
+function jlDraw(){
+  const box=$('jl-pick');if(!jlData){box.hidden=true;return;}
+  const rows=TROOPS.map(t=>{const hs=jlData.heroes.filter(h=>h.troop===t.k);
+    if(!hs.length)return `<div class="jl-row"><span class="label">${t.name}</span><span class="jl-none">No ${t.name} hero on Jeabslist: your pieces stay as they are.</span></div>`;
+    const sel=jlData.pick[t.k],h=hs.find(x=>x.id===sel);
+    return `<div class="jl-row"><label class="label" for="jl-${t.k}">${t.name}</label><select id="jl-${t.k}" data-t="${t.k}">${jlHeroOpts(t,sel)}</select>
+      <span class="jl-gear">${h.gear.map((g,i)=>`<span title="${SLOT_OF[i]}">${jlLv(g)}<small>/${g[1]}</small></span>`).join('')}</span>${h.lowQ?`<span class="jl-none">${h.lowQ} piece${h.lowQ>1?'s':''} below Mythic, read as empty</span>`:''}</div>`;}).join('');
+  const when=jlData.fetchedAt?new Date(jlData.fetchedAt).toLocaleString():'unknown date';
+  box.innerHTML=`<p class="jl-h"><b>${jlData.who}</b>: gear seen by Jeabslist on ${when}${jlData.stale?' (may be out of date)':''}. Pick the hero whose gear you're planning for each troop type.</p>
+    ${rows}<p class="foot" style="margin:6px 0 10px">Level/mastery per piece: Helm, Gloves, Chest, Boots. Your materials aren't on Jeabslist: check them in step 1.</p>
+    <div class="btns"><button type="button" class="primary" id="jl-apply">Use this gear</button><button type="button" id="jl-cancel">Cancel</button></div>`;
+  box.hidden=false;}
+$('btn-jl').addEventListener('click',async()=>{
+  const acc=window.KSAccounts&&KSAccounts.linked();
+  if(!window.JL||!JL.hasToken()||!acc){say(!acc?'First link this game account to your Governor ID: account menu, top right.':'First add your Jeabslist API token: account menu, top right.','err');
+    if(window.KSAccounts)KSAccounts.open();return;}
+  const b=$('btn-jl');b.disabled=true;say('Asking Jeabslist for your hero gear…','ok');
+  try{const d=await JL.heroGear(acc.fid);
+    if(!d.heroes.length){jlData=null;jlDraw();say(d.fetchedAt?'Jeabslist has no hero gear for this governor.':"Jeabslist hasn't read this governor's gear yet. It fills in over time; try again later.",'err');return;}
+    const pick={};TROOPS.forEach(t=>{const hs=d.heroes.filter(h=>h.troop===t.k).sort((a,b)=>(a.pos||99)-(b.pos||99));if(hs.length)pick[t.k]=hs[0].id;});
+    jlData={...d,pick,who:acc.name||('ID '+acc.fid)};jlDraw();say('','ok');}
+  catch(e){say(e.message,'err');}
+  finally{b.disabled=false;}});
+$('jl-pick').addEventListener('change',e=>{const s=e.target.closest('select[data-t]');if(s&&jlData){jlData.pick[s.dataset.t]=+s.value;jlDraw();$('jl-'+s.dataset.t).focus();}});
+$('jl-pick').addEventListener('click',e=>{
+  if(e.target.id==='jl-cancel'){jlData=null;jlDraw();return;}
+  if(e.target.id!=='jl-apply'||!jlData)return;
+  const st=readState();
+  TROOPS.forEach(t=>{const h=jlData.heroes.find(x=>x.id===jlData.pick[t.k]);if(h)st.gear[t.k]=h.gear.map(g=>g.slice());});
+  isExample=false;writeState(st);render();showAcct();
+  const names=TROOPS.map(t=>{const h=jlData.heroes.find(x=>x.id===jlData.pick[t.k]);return h&&h.name;}).filter(Boolean);
+  jlData=null;jlDraw();say(`Gear imported from Jeabslist (${names.join(', ')}). Check your materials in step 1.`,'ok');});
 $('btn-reset').addEventListener('click',()=>{isExample=true;writeState(EXAMPLE);render();showAcct();say('Loaded the example account.','ok');});
 let isExample=true;
 const BLANK=()=>({...EXAMPLE,chests:0,fh:0,myth:0,mith:0,xp:0,

@@ -35,7 +35,7 @@
       <span class="acct" id="acct" role="status"></span>
     </div>
     <ol class="howto">
-      <li><b>Load your account.</b> No code? Just type your numbers into the panels below. If you have a KGO code from Kingshot Optimizer, paste it here and press Import. To see how the planner works first, press Load example.</li>
+      <li><b>Load your account.</b> Linked your Governor ID to Jeabslist (account menu, top right)? Press Import from Jeabslist. No code? Just type your numbers into the panels below. If you have a KGO code from Kingshot Optimizer, paste it here and press Import. To see how the planner works first, press Load example.</li>
       <li><b>Check your resources and 12 gear pieces</b> in the panels below. Tap any piece in the results to jump to it.</li>
       <li><b>Pick your formation,</b> then follow the upgrade order on the right.</li>
     </ol>
@@ -47,8 +47,10 @@
       <button id="btn-export" type="button">Copy my code</button>
       <button id="btn-blank" type="button">Start from blank</button>
       <button id="btn-reset" type="button">Load example</button>
+      <button id="btn-jl" type="button">Import from Jeabslist</button>
     </div>
     <p id="share-msg" class="msg" role="status"></p>
+    <div id="jl-pick" class="jl-pick" hidden></div>
   </section>
 
   <div class="grid">
@@ -231,6 +233,8 @@
   </div>
   <footer class="sitefoot"><span>KS Tools · free calculators for Kingshot players</span><span>Independent fan project, not affiliated with Kingshot or Century Games.</span></footer>
 </div>
+<script src="../assets/jeabslist.js"></script>
+<script src="../assets/accounts.js"></script>
 <script src="../assets/hero-gear-model.js"></script>
 <script src="../assets/hero-gear.js"></script>
 </body>
