@@ -172,13 +172,13 @@ function render(){
       .map(r=>`<li><span>${r.t.n}</span><span class="kv-q">${r.q||qtyTxt(r.t,r.n)}</span><span class="kv-p">${big(r.pts)}</span></li>`).join('');
     const next=D.ms.find(x=>pt<x);
     return `<article class="kv-day${hit===3?' done':''}">
-      <div class="kv-dh"><span class="kv-dn">Day ${d}</span><b>${D.n}</b><span class="kv-dd">${dayDate(d)}</span><span class="kv-tot">${big(pt)}</span></div>
+      <div class="kv-dh"><span class="kv-dn">Day ${d}</span><b>${D.n}</b><span class="kv-dd">${dayDate(d)}</span><span class="kv-now"></span><span class="kv-tot">${big(pt)}</span></div>
       <div class="kv-bar" role="img" aria-label="${fmt(pt)} points, ${hit} of 3 milestones"><i style="width:${bar.toFixed(1)}%"></i>
         ${D.ms.map((x,i)=>`<span class="kv-m${pt>=x?' on':''}" style="left:${(x/top*100).toFixed(1)}%" title="Milestone ${i+1}: ${fmt(x)}"><em>M${i+1}</em></span>`).join('')}</div>
       <p class="kv-ms">${hit===3?'All 3 milestones':`${hit} of 3 milestones`}${next?` · ${fmt(next-pt)} more for M${D.ms.indexOf(next)+1}`:''}</p>
       ${rows?`<ul class="kv-use">${rows}</ul>`:'<p class="kv-none">Nothing from your backpack scores today.</p>'}
     </article>`;});
-  $('days').innerHTML=cards.join('');
+  $('days').innerHTML=cards.join('');updateToday();
   $('s-pts').textContent=total?big(total):'—';$('s-ms').textContent=total?ms:'—';
   $('s-best').textContent=total?'Day '+best:'—';$('s-best2').textContent=total?DAYS[best].n:'';
   const notes=[];
@@ -193,6 +193,23 @@ function render(){
   drawPast(total);
   if(document.activeElement!==$('code'))$('code').value=exportCode();
   save();}
+
+/* ---------- today: during prep week, mark the current day and how long it has left ----------
+   Prep days run 00:00 to 00:00 UTC from "Preparation day 1". */
+const HOUR=36e5;
+const left=ms=>{const h=Math.floor(ms/HOUR),m=Math.floor(ms%HOUR/6e4);return h>=48?`${Math.round(ms/864e5)} days`:h?`${h} h ${m} min`:`${m} min`;};
+function updateToday(){
+  const el=$('kv-when'),t0=st.start?Date.parse(st.start+'T00:00:00Z'):NaN;
+  const k=isNaN(t0)?null:Math.floor((Date.now()-t0)/864e5)+1;   /* 1..5 during prep */
+  document.querySelectorAll('.kv-day').forEach((c,i)=>{const d=i+1,on=k===d,past=k>d&&k<=7;
+    c.classList.toggle('today',on);c.classList.toggle('past',!!past);
+    c.querySelector('.kv-now').textContent=on?'Today':past?'Done':'';});
+  let t='';
+  if(k!==null&&k<1)t=`Prep day 1 starts in ${left(t0-Date.now())} (00:00 UTC).`;
+  else if(k>=1&&k<=5)t=`<b>Day ${k} of 5 · ${DAYS[k].n}</b> · ends in ${left(t0+k*864e5-Date.now())} (00:00 UTC).`;
+  else if(k===6||k===7)t='Preparation is over: good luck in the battle.';
+  el.innerHTML=t;el.hidden=!t;}
+setInterval(updateToday,6e4);
 
 /* ---------- code ---------- */
 const exportCode=()=>'KSK1:'+btoa(unescape(encodeURIComponent(JSON.stringify({inv:Object.fromEntries(Object.entries(st.inv).filter(([,v])=>v)),troops:st.troops.filter(x=>x.n),start:st.start,src:st.src})))).replace(/=+$/,'');

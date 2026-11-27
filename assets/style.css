@@ -608,3 +608,19 @@ body.is-updating .upd{display:inline-block;animation:upd 1s ease-in-out infinite
   -webkit-text-stroke:2px #3d2a0e;paint-order:stroke fill;white-space:nowrap}
 .cg-tag:empty{display:none}
 .cg-glv{display:block;font-size:.74rem;color:var(--muted)}
+.acsw-acts{flex-wrap:wrap}
+.acsw-acts button{min-width:calc(50% - 3px)}
+.acsw-bk{margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
+.acsw-bk .acsw-acts{margin-top:0;padding-top:0;border-top:0}
+.acsw-bkmsg{margin:6px 0 0;font-size:.78rem;color:var(--muted)}
+.acsw-bkmsg:empty{display:none}
+.acsw-bkmsg.bad{color:var(--red)}
+.acsw-conf .acsw-row{flex-wrap:wrap}
+/* KvK: today during prep week */
+.kv-when{margin:0 0 10px;padding:8px 12px;border-radius:8px;background:var(--ember-soft);font-size:.88rem}
+.kv-now{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ember)}
+.kv-now:empty{display:none}
+.kv-day.today{box-shadow:0 0 0 2px var(--ember)}
+.kv-day.past{opacity:.55}
+.kv-day.past .kv-now{color:var(--muted)}
+.acsw-menu{max-height:calc(100vh - 90px);overflow-y:auto}
