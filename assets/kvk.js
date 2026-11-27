@@ -223,7 +223,7 @@ window.addEventListener('hashchange',()=>{fromHash();writeInputs();render();});
 
 /* ---------- Jeabslist: your kingdom's KvK and your past preps ----------
    Only for a game account linked to a Governor ID (account menu) with the player's Jeabslist token.
-   3 requests a visit, kept 10 minutes: the kingdom's forecast (next season, draw, likely opponents), its matchups
+   3 requests, kept by the Jeabslist client (draw 1 h, forecast 6 h, prep history 12 h): the kingdom's forecast (next season, draw, likely opponents), its matchups
    (the drawn pair, live prep totals, last season's result) and the player's prep history (points per day).
    Prep day 1 opens at 00:00 UTC five days before the battle (season 23: prep Mon 2 Nov, battle Sat 7 Nov 10:00). */
 const DAY=864e5;
@@ -248,7 +248,10 @@ async function jlKvk(fresh){
   const kid=acc.kingdom,o={fresh};
   const [f,m,pr]=await Promise.allSettled([JL.get(`/kingdoms/${kid}/kvk/forecast`,o),JL.get(`/kvk/matchups?kid=${kid}`,o),JL.get(`/players/${encodeURIComponent(acc.fid)}/prep`,o)]);
   if(f.status==='rejected'&&m.status==='rejected'){jlBox(`<p class="bad">${esc(f.reason.message)}</p>`);}
-  else drawKvk(kid,f.value,m.value);
+  else{drawKvk(kid,f.value,m.value);
+    const t=Math.min(...[`/kingdoms/${kid}/kvk/forecast`,`/kvk/matchups?kid=${kid}`].map(JL.fetchedAt).filter(Boolean));
+    if(isFinite(t)){const mins=Math.round((Date.now()-t)/6e4);
+      $('jl-kvk').insertAdjacentHTML('beforeend',`<p class="jl-foot">Data from ${mins<1?'just now':mins<60?mins+' min ago':Math.round(mins/60)+' h ago'} · <button type="button" class="jl-lnk" id="jl-refresh">Refresh</button></p>`);}}
   jlPast=pr.status==='fulfilled'?{d:pr.value,who:acc.name}:{err:pr.reason.message};
   render();}
 function drawKvk(kid,f,m){
@@ -299,6 +302,7 @@ function drawPast(total){
     <p class="jl-foot">${total&&best?`This week's plan: <b>${big(total)}</b> points, ${total>=best?`more than your best recent prep (${big(best)})`:`${Math.round(total/best*100)}% of your best recent prep (${big(best)})`}. `:''}${rt?`Jeabslist Prep Rating: ${rt.rating} (${esc(rt.tier)})${rt.kingdom?`, ${rt.kingdom.rank} of ${rt.kingdom.of} in #${rt.kingdom.kid}`:''}.`:''}</p>`;}
 $('jl-kvk').addEventListener('click',e=>{
   if(e.target.id==='jl-open'&&window.KSAccounts){KSAccounts.open();return;}
+  if(e.target.id==='jl-refresh'){jlKvk(true);return;}
   const b=e.target.closest('[data-start]');if(b){st.start=b.dataset.start;$('r-start').value=st.start;b.remove();render();}});
 window.addEventListener('ks-account-linked',()=>jlKvk(true));
 
