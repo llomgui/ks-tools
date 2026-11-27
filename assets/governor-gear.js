@@ -124,7 +124,7 @@ $('gv-pieces').innerHTML=`<div class="cg gv-cg"><div class="cg-side">${[2,0,4].m
       <select id="gv-cs-${i}" class="st" aria-label="${pc.n} purchases toward next level">${stOptions}</select></div></div>`).join('')}</div>
   <div class="cg-side">${[3,1,5].map(gvBtn).join('')}</div></div>
   <div class="cg-det" id="gv-det"></div>`;
-const CHM=window.CH?(()=>{const c=CH.loadSaved();return c?c.cur:null;})():null;
+let CHM=null;const loadCharms=()=>{CHM=window.CH?(()=>{const c=CH.loadSaved();return c?c.cur:null;})():null;};loadCharms();
 function drawGov(){
   const ps=PIECES.map((_,i)=>getPos('gv-cl-'+i,'gv-cs-'+i));
   PIECES.forEach((pc,i)=>{const {L}=lvAt(ps[i]);
@@ -553,6 +553,7 @@ $('gv-cards').addEventListener('click',e=>{const c=e.target.closest('.gcw');if(c
 $('gv-cards').addEventListener('keydown',e=>{const c=e.target.closest('.gcw');if(c&&(e.key==='Enter'||e.key===' ')){e.preventDefault();jump(c.dataset.row);}});
 
 /* ---------- start ---------- */
+function loadSaved(){
 let start=BLANK();
 try{const s=JSON.parse(localStorage.getItem('hgp-gov-v1')||'null');
   if(s&&s.pieces&&s.pieces.length===6&&s.inv){
@@ -561,5 +562,9 @@ try{const s=JSON.parse(localStorage.getItem('hgp-gov-v1')||'null');
     if(s.profile)Object.assign(start,{profile:s.profile,for:s.for,att:s.att,def:s.def,mix:s.mix});
     if(s.packs)start.packs=s.packs;if(s.shopTab)start.shopTab=s.shopTab;if(s.cart)start.cart=s.cart;}}catch(e){}
 showShop(start.shopTab||'master',false);
-writeState(start);render();
+writeState(start);render();}
+loadSaved();
+/* game account switch (assets/accounts.js): save a pending edit, then read the new account's inputs */
+window.KSPage={flush(){if(tmr){clearTimeout(tmr);tmr=null;render();}},
+  reload(){clearTimeout(tmr);tmr=null;loadCharms();say('','ok');loadSaved();}};
 })();

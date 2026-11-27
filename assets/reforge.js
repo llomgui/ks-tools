@@ -33,11 +33,12 @@ function upgrade(x){
   x.nextId=Math.max(x.nextId||0,...x.pieces.map(p=>p.id+1),1);
   return x;}
 
-let st;
-try{st=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){st=null;}
-if(!st||!Array.isArray(st.pieces)) st=fresh(EXAMPLE_PIECES);
-st=upgrade(st);
-let sel=null;
+let st,sel=null;
+function loadSaved(){
+  try{st=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){st=null;}
+  if(!st||!Array.isArray(st.pieces)) st=fresh(EXAMPLE_PIECES);
+  st=upgrade(st);sel=null;}
+loadSaved();
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}};
 
 /* ---------- investment and refunds ---------- */
@@ -296,4 +297,6 @@ function fromHash(){
 fromHash();
 window.addEventListener('hashchange',()=>{if(fromHash()){writeRes();render();}});
 writeRes();render();
+/* game account switch (assets/accounts.js): inputs are saved as you edit, so only reload */
+window.KSPage={reload(){loadSaved();writeRes();render();}};
 })();

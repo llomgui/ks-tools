@@ -512,8 +512,9 @@ $('app-hero').addEventListener('click',e=>{
   if(b){const k=b.dataset.hk,n=+b.dataset.r;hcart[k]=hcart[k]===n?n-1:n;render();}});
 
 /* new visitors start blank; returning visitors get what they last entered */
-let start=BLANK();
 const sameGear=(a,b)=>TROOPS.every(t=>a[t.k]&&a[t.k].every((g,i)=>g[0]===b[t.k][i][0]&&g[1]===b[t.k][i][1]&&g[2]===b[t.k][i][2]));
+function loadSaved(){
+let start=BLANK();
 try{
   let s=JSON.parse(localStorage.getItem('hgp-state-v3')||'null');
   if(!s){
@@ -530,5 +531,9 @@ try{
 }catch(e){}
 isExample=!!start.isExample;
 showTab(start.shopTab||'mith');
-writeState(start);render();showAcct();
+writeState(start);render();showAcct();}
+loadSaved();
+/* game account switch (assets/accounts.js): save a pending edit, then read the new account's inputs */
+window.KSPage={flush(){if(tmr){clearTimeout(tmr);tmr=null;render();}},
+  reload(){clearTimeout(tmr);tmr=null;jlData=null;jlDraw();say('','ok');loadSaved();}};
 })();

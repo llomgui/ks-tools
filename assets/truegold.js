@@ -57,8 +57,10 @@ function toLabels(st){const o={cur:{},goal:{},tg:st.tg,ttg:st.ttg,inc:st.inc,spe
   open:st.open,by:st.by,qlvl:st.qlvl};
   KS.forEach(k=>{o.cur[k]=B[k].levels[st.cur[k]];if(st.goal[k]>st.cur[k])o.goal[k]=B[k].levels[st.goal[k]];});return o;}
 let st;
-try{const o=JSON.parse(localStorage.getItem(KEY)||'null');st=o?fromLabels(o):null;}catch(e){st=null;}
-if(!st) st=fromLabels(EXAMPLE);
+function loadSaved(){
+  try{const o=JSON.parse(localStorage.getItem(KEY)||'null');st=o?fromLabels(o):null;}catch(e){st=null;}
+  if(!st) st=fromLabels(EXAMPLE);}
+loadSaved();
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(toLabels(st)));}catch(e){}};
 
 /* ---------- what a goal needs ---------- */
@@ -305,4 +307,6 @@ function fromHash(){if(!location.hash.startsWith('#'+CODE))return false;
 fromHash();
 window.addEventListener('hashchange',()=>{if(fromHash()){writeRes();render();}});
 writeRes();render();
+/* game account switch (assets/accounts.js): inputs are saved as you edit, so only reload */
+window.KSPage={reload(){loadSaved();writeRes();render();}};
 })();

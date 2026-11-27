@@ -24,13 +24,22 @@ let S=load();const cur=()=>S.list.find(a=>a.id===S.active);
 /* after switching, stop this page from writing its (old account's) inputs before the reload finishes */
 function freeze(){const set=Storage.prototype.setItem;
   Storage.prototype.setItem=function(k,v){if(this===ls&&KEYS.includes(k))return;return set.call(this,k,v);};}
+/* A page that sets window.KSPage = {flush(), reload()} switches in place: flush() saves an edit still waiting
+   to be saved, reload() reads the page's inputs again from storage. Other pages reload. */
+const page=()=>{const P=window.KSPage;return P&&typeof P.reload==='function'?P:null;};
+function show(id){
+  const P=page();
+  if(P){try{P.reload();open(false);draw();window.dispatchEvent(new CustomEvent('ks-account-switched',{detail:{id}}));return;}catch(e){}}
+  freeze();location.reload();}
+function swapTo(to){KEYS.forEach(k=>{if(to.data&&to.data[k]!=null)ls.setItem(k,to.data[k]);else ls.removeItem(k);});}
 function activate(id){
   const to=S.list.find(a=>a.id===id);if(!to)return;
-  cur().data=snapshot();
-  KEYS.forEach(k=>{if(to.data&&to.data[k]!=null)ls.setItem(k,to.data[k]);else ls.removeItem(k);});
-  S.active=id;save(S);freeze();location.reload();}
-/* another tab switched account: follow it */
-window.addEventListener('storage',e=>{if(e.key!==STORE)return;const n=load();if(n.active!==S.active){freeze();location.reload();}else S=n;});
+  const P=page();if(P&&P.flush){try{P.flush();}catch(e){}}
+  cur().data=snapshot();swapTo(to);
+  S.active=id;save(S);show(id);}
+/* another tab switched account: follow it (its inputs are already in storage) */
+window.addEventListener('storage',e=>{if(e.key!==STORE)return;const n=load();
+  if(n.active!==S.active){S=n;show(n.active);}else{S=n;draw();}});
 
 /* ---------- UI ---------- */
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -92,8 +101,7 @@ menu.addEventListener('click',e=>{
   else if(act==='del'){form.hidden=true;conf.hidden=false;conf.querySelector('p').textContent=`Delete "${cur().name}" and all its inputs on every page? This can't be undone.`;conf.querySelector('.danger').focus();}
   else if(act==='del-yes'){const gone=S.active,next=S.list.find(a=>a.id!==gone);
     S.list=S.list.filter(a=>a.id!==gone);S.active=next.id;
-    KEYS.forEach(k=>{if(next.data&&next.data[k]!=null)ls.setItem(k,next.data[k]);else ls.removeItem(k);});
-    save(S);freeze();location.reload();}});
+    swapTo(next);save(S);show(next.id);}});
 menu.addEventListener('submit',e=>{const f=e.target.closest('form[data-f]');if(!f)return;e.preventDefault();
   const v=f.querySelector('input').value.trim();
   if(f.dataset.f==='tok'){if(!v)return;JL.setToken(v);drawJL();jlMsg('Token saved in this browser.');const i=$('#acsw-fid');if(i)i.focus();}

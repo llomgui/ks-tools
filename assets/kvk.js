@@ -313,4 +313,7 @@ $('jl-kvk').addEventListener('click',e=>{
 window.addEventListener('ks-account-linked',()=>jlKvk(true));
 
 buildInputs();fromHash();writeInputs();render();jlKvk(false);
+/* game account switch (assets/accounts.js): inputs are saved as you type, so only reload */
+window.KSPage={reload(){try{st=clean(JSON.parse(localStorage.getItem(KEY)||'null'));}catch(e){st=blank();}
+  $('srcs').innerHTML='';say('','ok');writeInputs();render();jlKvk(false);}};
 })();

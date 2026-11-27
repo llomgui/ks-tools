@@ -274,4 +274,7 @@ window.addEventListener('hashchange',()=>{if(fromHash()){writeInputs();render();
 
 buildPieces();fromHash();writeInputs();render();
 if(isExample)say('Showing an example. Enter your own charms and materials.','ok');
+/* game account switch (assets/accounts.js): inputs are saved as you type, so only reload */
+window.KSPage={reload(){const s=C.loadSaved();st=s||C.clean(EXAMPLE);isExample=!s;cart=defCart();showAll=false;
+  writeInputs();render();say(isExample?'Showing an example. Enter your own charms and materials.':'','ok');}};
 })();
