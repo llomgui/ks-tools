@@ -1,8 +1,6 @@
 (function(){
-const $=id=>document.getElementById(id);
-const fmt=n=>Math.round(n).toLocaleString('en-US');
+const {$,fmt,esc,KEYS}=KS;
 const big=n=>n>=1e9?(+(n/1e9).toFixed(2))+'B':n>=1e6?(+(n/1e6).toFixed(n>=1e7?1:2))+'M':n>=1e4?(+(n/1e3).toFixed(n>=1e5?0:1))+'K':fmt(n);
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 /* ---------- KvK preparation days (Kingshot Optimizer, Kingdom of Power event guide) ---------- */
 const DAYS=[null,
@@ -47,7 +45,7 @@ const TK={};T.forEach(t=>TK[t.k]=t);
 const GROUPS=[...new Set(T.map(t=>t.g))];
 
 /* ---------- state ---------- */
-const KEY='ks-kvk-v1';
+const KEY=KEYS.kvk;
 const blank=()=>({inv:Object.fromEntries(T.map(t=>[t.k,0])),troops:[{f:0,t:10,n:0}],start:'',src:{}});
 function clean(o){const s=blank();o=o||{};const inv=o.inv||{};
   T.forEach(t=>{s.inv[t.k]=Math.max(0,+inv[t.k]||0);});
@@ -57,8 +55,10 @@ function clean(o){const s=blank();o=o||{};const inv=o.inv||{};
   s.start=/^\d{4}-\d{2}-\d{2}$/.test(o.start||'')?o.start:'';
   s.src=o.src&&typeof o.src==='object'?Object.fromEntries(Object.entries(o.src).filter(([k,v])=>TK[k]&&typeof v==='string').map(([k,v])=>[k,v.slice(0,40)])):{};
   return s;}
-let st;try{st=clean(JSON.parse(localStorage.getItem(KEY)||'null'));}catch(e){st=blank();}
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
+let st;
+function loadSaved(){try{st=clean(KS.read(KEY));}catch(e){st=blank();}}
+loadSaved();
+const save=()=>KS.write(KEY,st);
 
 /* ---------- Governor Gear score from levels + materials ---------- */
 const GOV=(window.GOV_RAW||'').split('\n').filter(Boolean).map(l=>{const p=l.split('|');return {satin:+p[1],gt:+p[2],av:+p[3],ev:+p[6]||0};});
@@ -98,11 +98,11 @@ function readCode(txt){
     if(kind==='KST1')return fromTruegold(b64jsonU(body),'Truegold code');
   }catch(e){throw new Error('This code is damaged. Copy it again in full.');}}
 function fromPages(){
-  const got=[],ls=k=>{try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e){return null;}};
-  const h=ls('hgp-state-v3');if(h&&(h.fh||h.mith))got.push(fromHeroGear(+h.fh||0,+h.mith||0,'Hero Gear page'));
-  const g=ls('hgp-gov-v1');if(g&&Array.isArray(g.pieces)&&g.inv)got.push(fromGov(g.pieces.map(x=>+x.cur||0),g.inv,'Governor Gear page'));
+  const got=[],ls=KS.read;
+  const h=ls(KEYS.hero);if(h&&(h.fh||h.mith))got.push(fromHeroGear(+h.fh||0,+h.mith||0,'Hero Gear page'));
+  const g=ls(KEYS.gov);if(g&&Array.isArray(g.pieces)&&g.inv)got.push(fromGov(g.pieces.map(x=>+x.cur||0),g.inv,'Governor Gear page'));
   const c=CH.loadSaved();if(c)got.push(fromCharms(c,'Charms page'));
-  const t=ls('ks-truegold-v1');if(t)got.push(fromTruegold(t,'Truegold page'));
+  const t=ls(KEYS.truegold);if(t)got.push(fromTruegold(t,'Truegold page'));
   return got.filter(Boolean);}
 function apply(r){Object.entries(r.vals).forEach(([k,v])=>{st.inv[k]=v;st.src[k]=r.src;});}
 
@@ -198,7 +198,7 @@ function render(){
 const exportCode=()=>'KSK1:'+btoa(unescape(encodeURIComponent(JSON.stringify({inv:Object.fromEntries(Object.entries(st.inv).filter(([,v])=>v)),troops:st.troops.filter(x=>x.n),start:st.start,src:st.src})))).replace(/=+$/,'');
 
 /* ---------- events ---------- */
-const say=(t,c)=>{const m=$('msg');m.textContent=t;m.className='msg '+c;};
+const say=KS.msg('msg');
 function showSrcs(list){$('srcs').innerHTML=list.map(r=>{const v=Object.entries(r.vals).map(([k,n])=>`${TK[k].n} ${fmt(n)}`).join(', ');
   return `<span class="chip">${esc(r.src)}</span> ${v||'nothing to add'}${r.extra?` <small>(${esc(r.extra)})</small>`:''}`;}).map(x=>`<p>${x}</p>`).join('');}
 $('groups').addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;st.inv[k]=Math.max(0,+e.target.value||0);delete st.src[k];
@@ -218,8 +218,7 @@ $('btn-pages').addEventListener('click',()=>{const got=fromPages();
 $('btn-import').addEventListener('click',()=>{try{const r=readCode($('code').value);
   if(r.whole){st=r.whole;$('srcs').innerHTML='';writeInputs();render();say('KvK code imported.','ok');return;}
   apply(r);writeInputs();render();showSrcs([r]);say(`Imported the ${r.src}.`,'ok');}catch(e){say(e.message,'err');}});
-const copy=(txt,ok)=>{const sel=()=>{$('code').value=exportCode();$('code').focus();$('code').select();say('Copy the code from the box above.','ok');};
-  if(navigator.clipboard)navigator.clipboard.writeText(txt).then(()=>say(ok,'ok'),sel);else sel();};
+const copy=(txt,ok)=>KS.copyCode(txt,ok,say);
 $('btn-export').addEventListener('click',()=>copy(exportCode(),'Code copied.'));
 $('btn-link').addEventListener('click',()=>copy(location.href.split('#')[0]+'#'+exportCode(),'Link copied. Opening it loads this backpack.'));
 $('btn-clear').addEventListener('click',()=>{if(!confirm('Clear your KvK backpack?'))return;st=blank();$('srcs').innerHTML='';writeInputs();render();say('Cleared.','ok');});
@@ -250,18 +249,20 @@ async function jlKvk(fresh){
     jlBox(`<p>Link this game account to your Governor ID to fill in your kingdom's KvK dates, opponent and your past preps. <button type="button" class="jl-lnk" id="jl-open">Open the account menu</button></p>`);
     jlPast=null;drawPast(0);return;}
   if(!acc.kingdom){jlBox('<p>Jeabslist has no kingdom for this governor yet. Press Refresh in the account menu.</p>');return;}
-  jlBox(`<p class="jl-wait">Asking Jeabslist about kingdom #${acc.kingdom}…</p>`);
-  const kid=acc.kingdom,o={fresh};
+  jlBox(`<p class="jl-wait">Asking Jeabslist about kingdom #${esc(acc.kingdom)}…</p>`);
+  const kid=+acc.kingdom,o={fresh},gen=KS.gen();
   const [f,m,pr]=await Promise.allSettled([JL.get(`/kingdoms/${kid}/kvk/forecast`,o),JL.get(`/kvk/matchups?kid=${kid}`,o),JL.get(`/players/${encodeURIComponent(acc.fid)}/prep`,o)]);
+  if(gen!==KS.gen())return;   /* the player switched game account meanwhile */
   if(f.status==='rejected'&&m.status==='rejected'){jlBox(`<p class="bad">${esc(f.reason.message)}</p>`);}
-  else{drawKvk(kid,f.value,m.value);
+  else{const dates=drawKvk(kid,f.value,m.value);
+    if(dates&&dates.auto&&st.start!==dates.iso){st.start=dates.iso;$('r-start').value=dates.iso;drawKvk(kid,f.value,m.value);}
     const t=Math.min(...[`/kingdoms/${kid}/kvk/forecast`,`/kvk/matchups?kid=${kid}`].map(JL.fetchedAt).filter(Boolean));
     if(isFinite(t)){const mins=Math.round((Date.now()-t)/6e4);
       $('jl-kvk').insertAdjacentHTML('beforeend',`<p class="jl-foot">Data from ${mins<1?'just now':mins<60?mins+' min ago':Math.round(mins/60)+' h ago'} · <button type="button" class="jl-lnk" id="jl-refresh">Refresh</button></p>`);}}
   jlPast=pr.status==='fulfilled'?{d:pr.value,who:acc.name}:{err:pr.reason.message};
   render();}
 function drawKvk(kid,f,m){
-  const out=[];
+  const out=[];let dates=null;
   const pairs=(m&&m.matchups)||[],mine=pairs.find(x=>(x.kingdoms||[]).includes(kid));
   const season=f&&f.season?f.season:m&&m.season;
   const cur=mine&&m.season===season?mine:null,last=mine&&m.season<season?mine:null;
@@ -269,24 +270,25 @@ function drawKvk(kid,f,m){
   /* dates */
   const p1=prepStartOf(cur,battle);
   if(p1){const iso=isoDay(p1),endPrep=+p1+5*DAY;
-    const auto=!st.start||new Date(st.start+'T00:00:00Z')<new Date(endPrep-12*DAY);
-    if(auto&&st.start!==iso&&endPrep>Date.now()-DAY){st.start=iso;$('r-start').value=iso;}
-    out.push(`<p><b>Season ${season}</b> · prep day 1 <b>${fmtDay(p1)}</b> (${inDays(+p1/1e3)}) · battle <b>${fmtWhen(battle)}</b>${st.start===iso?'':` <button type="button" class="jl-lnk" data-start="${iso}">Use these dates</button>`}</p>`);}
+    /* fill the date when it's empty or from an earlier season, while this prep isn't long over (done by jlKvk) */
+    dates={iso,auto:(!st.start||new Date(st.start+'T00:00:00Z')<new Date(endPrep-12*DAY))&&endPrep>Date.now()-DAY};
+    out.push(`<p><b>Season ${esc(season)}</b> · prep day 1 <b>${fmtDay(p1)}</b> (${inDays(+p1/1e3)}) · battle <b>${fmtWhen(battle)}</b>${st.start===iso?'':` <button type="button" class="jl-lnk" data-start="${iso}">Use these dates</button>`}</p>`);}
   /* opponent */
   const opp=cur?(cur.kingdoms.length===1?0:cur.kingdoms.find(k=>k!==kid)):f&&f.opponent_kid;
   if(cur&&cur.kingdoms.length===1)out.push('<p>No opponent this season: your kingdom sits it out.</p>');
-  else if(opp){let t=`<p>Opponent: <b>#${opp}</b>`;
+  else if(opp){let t=`<p>Opponent: <b>#${esc(opp)}</b>`;
     const pp=cur&&cur.prep&&cur.prep.points;
     if(pp&&pp[kid]!=null&&pp[opp]!=null){const a=+pp[kid],b=+pp[opp];t+=` · prep ${cur.prep.complete?'final':'so far'}: <b class="${a>=b?'up':'down'}">${big(a)}</b> to ${big(b)}${cur.prep.complete?(a>=b?', prep won':', prep lost'):(a>=b?', leading':', behind')}`;}
     out.push(t+'</p>');}
   else if(f&&f.ready&&(f.candidates||[]).length){
-    const c=f.candidates.slice(0,3).map(x=>`<b>#${x.kid}</b> ${Math.round(x.likelihood*100)}%`).join(' · ');
+    const c=f.candidates.slice(0,3).map(x=>`<b>#${esc(x.kid)}</b> ${Math.round(x.likelihood*100)}%`).join(' · ');
     out.push(`<p>Draw ${f.draw_expected_at?`expected ${fmtDay(utcDay(f.draw_expected_at))} (${inDays(f.draw_expected_at)})`:'not out yet'}. Most likely opponents: ${c}.</p>
       <p class="jl-foot">A ranking, not a prediction: the real opponent is in Jeabslist's top 10 about ${Math.round(((f.model&&f.model.top10_hit_rate)||0.4)*100)}% of the time.</p>`);}
   /* last season */
   if(last&&last.kingdoms.length>1&&last.prep&&last.prep.points){const o2=last.kingdoms.find(k=>k!==kid),a=+last.prep.points[kid],b=+last.prep.points[o2];
-    if(a||b)out.push(`<p class="jl-foot">Season ${m.season} against #${o2}: prep ${a>=b?'won':'lost'}, ${big(a)} to ${big(b)}.</p>`);}
-  jlBox(out.join('')||'<p>Jeabslist has no KvK data for this kingdom yet.</p>');}
+    if(a||b)out.push(`<p class="jl-foot">Season ${esc(m.season)} against #${esc(o2)}: prep ${a>=b?'won':'lost'}, ${big(a)} to ${big(b)}.</p>`);}
+  jlBox(out.join('')||'<p>Jeabslist has no KvK data for this kingdom yet.</p>');
+  return dates;}
 /* your past preps, day by day, next to this week's plan */
 function drawPast(total){
   const box=$('jl-past');if(!box)return;
@@ -296,16 +298,16 @@ function drawPast(total){
   if(!ss.length){box.hidden=false;box.innerHTML='<h3 class="sub">Your past preps</h3><p class="jl-foot">Jeabslist has no prep scores for you yet.</p>';return;}
   const sc=(s,day)=>{const x=(d.scores||[]).find(y=>y.season===s&&y.day===day&&(day?y.rtype===day:y.rtype===11));return x;};
   const rows=ss.map(s=>{
-    if(s.missed)return `<tr><td>${s.season}</td><td>#${s.kid}</td><td colspan="6" class="jl-miss">Missed</td></tr>`;
+    if(s.missed)return `<tr><td>${esc(s.season)}</td><td>#${esc(s.kid)}</td><td colspan="6" class="jl-miss">Missed</td></tr>`;
     const days=[1,2,3,4,5].map(n=>{const x=sc(s.season,n);return `<td class="r">${x?big(x.score):'—'}</td>`;}).join('');
     const tot=sc(s.season,0),t=tot?tot.score:s.points;
-    return `<tr><td>${s.season}</td><td>#${s.kid}${s.opp_kid?` <small>vs #${s.opp_kid}</small>`:''}</td>${days}<td class="r"><b>${t?big(t):'—'}</b>${s.kingdom_rank?`<small>rank ${s.kingdom_rank}</small>`:''}</td></tr>`;}).join('');
+    return `<tr><td>${esc(s.season)}</td><td>#${esc(s.kid)}${s.opp_kid?` <small>vs #${esc(s.opp_kid)}</small>`:''}</td>${days}<td class="r"><b>${t?big(t):'—'}</b>${s.kingdom_rank?`<small>rank ${esc(s.kingdom_rank)}</small>`:''}</td></tr>`;}).join('');
   const best=ss.filter(s=>!s.missed).map(s=>{const x=sc(s.season,0);return x?x.score:+s.points||0;}).reduce((a,b)=>Math.max(a,b),0);
   const rt=d.rating;
   box.hidden=false;
   box.innerHTML=`<h3 class="sub">Your past preps</h3>
     <div class="tbl"><table class="jl-ptab"><thead><tr><th>Season</th><th>Kingdom</th>${[1,2,3,4,5].map(n=>`<th class="r" title="${DAYS[n].n}">Day ${n}</th>`).join('')}<th class="r">Total</th></tr></thead><tbody>${rows}</tbody></table></div>
-    <p class="jl-foot">${total&&best?`This week's plan: <b>${big(total)}</b> points, ${total>=best?`more than your best recent prep (${big(best)})`:`${Math.round(total/best*100)}% of your best recent prep (${big(best)})`}. `:''}${rt?`Jeabslist Prep Rating: ${rt.rating} (${esc(rt.tier)})${rt.kingdom?`, ${rt.kingdom.rank} of ${rt.kingdom.of} in #${rt.kingdom.kid}`:''}.`:''}</p>`;}
+    <p class="jl-foot">${total&&best?`This week's plan: <b>${big(total)}</b> points, ${total>=best?`more than your best recent prep (${big(best)})`:`${Math.round(total/best*100)}% of your best recent prep (${big(best)})`}. `:''}${rt?`Jeabslist Prep Rating: ${esc(rt.rating)} (${esc(rt.tier)})${rt.kingdom?`, ${esc(rt.kingdom.rank)} of ${esc(rt.kingdom.of)} in #${esc(rt.kingdom.kid)}`:''}.`:''}</p>`;}
 $('jl-kvk').addEventListener('click',e=>{
   if(e.target.id==='jl-open'&&window.KSAccounts){KSAccounts.open();return;}
   if(e.target.id==='jl-refresh'){jlKvk(true);return;}
@@ -314,6 +316,6 @@ window.addEventListener('ks-account-linked',()=>jlKvk(true));
 
 buildInputs();fromHash();writeInputs();render();jlKvk(false);
 /* game account switch (assets/accounts.js): inputs are saved as you type, so only reload */
-window.KSPage={reload(){try{st=clean(JSON.parse(localStorage.getItem(KEY)||'null'));}catch(e){st=blank();}
+window.KSPage={reload(){loadSaved();jlPast=null;
   $('srcs').innerHTML='';say('','ok');writeInputs();render();jlKvk(false);}};
 })();

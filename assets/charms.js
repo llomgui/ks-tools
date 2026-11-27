@@ -1,15 +1,14 @@
 (function(){
-const $=id=>document.getElementById(id);
+const {$,fmt,pct,esc,KEYS}=KS;
 const C=window.CH;
-const fmt=n=>Math.round(n).toLocaleString('en-US');
-const big=n=>n>=1e4?(+(n/1e3).toFixed(n>=1e5?0:1))+'K':fmt(n);
-const pct=n=>(+n.toFixed(2)).toString();
 
 /* ---------- state ---------- */
 const EXAMPLE={cur:[11,11,10,9,9,9, 10,10,10,8,8,8, 9,9,9,7,7,7].map(l=>C.posOf(l,0)),g:2400,d:3100,m:'stats',tp:0,x:0};
-let st=C.loadSaved(),isExample=false;
-if(!st){st=C.clean(EXAMPLE);isExample=true;}
-const save=()=>{if(isExample)return;try{localStorage.setItem(C.KEY,JSON.stringify(st))}catch(e){}};
+let st,isExample=false;
+/* your saved charms, or the example until you edit */
+function loadSaved(){const s=C.loadSaved();st=s||C.clean(EXAMPLE);isExample=!s;}
+loadSaved();
+const save=()=>{if(!isExample)KS.write(KEYS.charms,st);};
 let showAll=false,plan=null;
 
 /* ---------- inputs ---------- */
@@ -219,7 +218,7 @@ function render(){
   save();}
 
 /* ---------- events ---------- */
-const say=(t,c)=>{const m=$('msg');m.textContent=t;m.className='msg '+c;};
+const say=KS.msg('msg');
 const mine=()=>{if(isExample){isExample=false;}};
 $('app-ch').addEventListener('change',e=>{
   const so=e.target.closest('.cg-ch select');
@@ -263,9 +262,7 @@ $('more').addEventListener('click',()=>{showAll=!showAll;render();});
 function load(o,msg){st=o;cart=defCart();isExample=false;writeInputs();render();say(msg,'ok');}
 $('btn-import').addEventListener('click',()=>{try{load(C.decode($('code').value),'Imported.');}catch(e){say(e.message,'err');}});
 $('btn-example').addEventListener('click',()=>{st=C.clean(EXAMPLE);isExample=true;cart=defCart();writeInputs();render();say('Example loaded. Your own data is kept until you edit.','ok');});
-const copy=(txt,ok)=>{const done=()=>say(ok,'ok');
-  if(navigator.clipboard)navigator.clipboard.writeText(txt).then(done,()=>{$('code').focus();$('code').select();say('Copy the code from the box above.','ok');});
-  else{$('code').focus();$('code').select();say('Copy the code from the box above.','ok');}};
+const copy=(txt,ok)=>KS.copyCode(txt,ok,say);
 $('btn-export').addEventListener('click',()=>copy(C.encode(st),'Code copied.'));
 $('btn-link').addEventListener('click',()=>copy(location.href.split('#')[0]+'#'+C.encode(st),'Link copied. Opening it loads these charms.'));
 function fromHash(){const h=decodeURIComponent(location.hash.slice(1));if(!/^KSC1:/i.test(h))return false;
@@ -275,6 +272,6 @@ window.addEventListener('hashchange',()=>{if(fromHash()){writeInputs();render();
 buildPieces();fromHash();writeInputs();render();
 if(isExample)say('Showing an example. Enter your own charms and materials.','ok');
 /* game account switch (assets/accounts.js): inputs are saved as you type, so only reload */
-window.KSPage={reload(){const s=C.loadSaved();st=s||C.clean(EXAMPLE);isExample=!s;cart=defCart();showAll=false;
+window.KSPage={reload(){loadSaved();cart=defCart();showAll=false;
   writeInputs();render();say(isExample?'Showing an example. Enter your own charms and materials.':'','ok');}};
 })();

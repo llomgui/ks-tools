@@ -1,9 +1,8 @@
 (function(){
 const {TROOPS,SLOT_OF,PROFILES,IMB,statOf,optimize,chestMyth,weightsFor,BADGE,gearImg,enhTier,enh,cumXP}=window.HG;
-const $=id=>document.getElementById(id);
-const KEY='ks-reforge-v1';
+const {$,fmt}=KS;
+const KEY=KS.KEYS.reforge;
 const TNAME={I:'Infantry',C:'Cavalry',A:'Archer'};
-const fmt=n=>Math.round(n).toLocaleString('en-US');
 
 /* piece: {id, t:troop, s:slot 0-3, q:'M'|'R', L:model level (Red 101-200), M:mastery}
    each troop type has one main hero: the best piece of each troop and slot goes on it, every other upgraded piece is reforged */
@@ -35,11 +34,11 @@ function upgrade(x){
 
 let st,sel=null;
 function loadSaved(){
-  try{st=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){st=null;}
+  st=KS.read(KEY);
   if(!st||!Array.isArray(st.pieces)) st=fresh(EXAMPLE_PIECES);
   st=upgrade(st);sel=null;}
 loadSaved();
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}};
+const save=()=>KS.write(KEY,st);
 
 /* ---------- investment and refunds ---------- */
 function invested(p){
@@ -274,9 +273,9 @@ $('todo').addEventListener('change',e=>{const k=e.target.closest('input[data-par
 $('profile').addEventListener('change',()=>{st.profile=PROFILES[$('profile').value]?$('profile').value:'gen4';render();});
 $('mode').addEventListener('change',()=>{st.mode=$('mode').value==='conq'?'conq':'exp';render();});
 
-const say=(t,c)=>{$('msg').textContent=t;$('msg').className='msg'+(c?' '+c:'');};
+const say=KS.msg('msg');
 const load=(x,t)=>{st=x;sel=null;writeRes();render();say(t,'ok');};
-const copy=async(text,t)=>{try{await navigator.clipboard.writeText(text);say(t,'ok');}catch(e){$('code').focus();$('code').select();say('Copy failed. The code is selected in the box: press Ctrl+C.','warn');}};
+const copy=(text,t)=>KS.copyCode(text,t,say);
 $('btn-import').addEventListener('click',()=>{try{const x=importCode($('code').value);load(x,`Imported ${x.pieces.length} piece${x.pieces.length===1?'':'s'}.`);}catch(e){say(e.message,'err');}});
 $('btn-export').addEventListener('click',()=>{$('code').value=exportCode();copy($('code').value,'Code copied. Paste it here later, or on another device, and press Import code.');});
 $('btn-link').addEventListener('click',()=>copy(location.origin+location.pathname+'#'+exportCode(),'Link copied. Opening it loads this setup.'));

@@ -1,9 +1,8 @@
 (function(){
 const D=window.TG_DATA,B={};D.forEach(b=>B[b.k]=b);
 const KS=D.map(b=>b.k);
-const $=id=>document.getElementById(id);
-const KEY='ks-truegold-v1';
-const fmt=n=>Math.round(n).toLocaleString('en-US');
+const {$,fmt}=window.KS;   /* shared helpers (common.js); KS below is this page's list of buildings */
+const KEY=window.KS.KEYS.truegold;
 const big=n=>n>=1e9?(n/1e9).toFixed(1).replace(/\.0$/,'')+'B':n>=1e6?(n/1e6).toFixed(n>=1e8?0:1).replace(/\.0$/,'')+'M':fmt(n);
 const idxOf=(k,label)=>B[k].levels.indexOf(label);
 const label=(k,i)=>{const l=B[k].levels[i];return l==='—'?'Not built':l;};
@@ -58,10 +57,10 @@ function toLabels(st){const o={cur:{},goal:{},tg:st.tg,ttg:st.ttg,inc:st.inc,spe
   KS.forEach(k=>{o.cur[k]=B[k].levels[st.cur[k]];if(st.goal[k]>st.cur[k])o.goal[k]=B[k].levels[st.goal[k]];});return o;}
 let st;
 function loadSaved(){
-  try{const o=JSON.parse(localStorage.getItem(KEY)||'null');st=o?fromLabels(o):null;}catch(e){st=null;}
+  try{const o=window.KS.read(KEY);st=o?fromLabels(o):null;}catch(e){st=null;}
   if(!st) st=fromLabels(EXAMPLE);}
 loadSaved();
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(toLabels(st)));}catch(e){}};
+const save=()=>window.KS.write(KEY,toLabels(st));
 
 /* ---------- what a goal needs ---------- */
 function targets(goal=st.goal){
@@ -266,9 +265,9 @@ function importCode(txt){
   return fromLabels(o);}
 
 /* ---------- events ---------- */
-const say=(t,c)=>{$('msg').textContent=t;$('msg').className='msg'+(c?' '+c:'');};
+const say=window.KS.msg('msg');
 const load=(x,t)=>{st=x;writeRes();render();say(t,'ok');};
-const copy=async(text,t)=>{try{await navigator.clipboard.writeText(text);say(t,'ok');}catch(e){$('code').focus();$('code').select();say('Copy failed. The code is selected in the box: press Ctrl+C.','warn');}};
+const copy=(text,t)=>window.KS.copyCode(text,t,say);
 $('blds').addEventListener('change',e=>{const s=e.target;
   if(s.dataset.cur){const k=s.dataset.cur,on=matchIdx();st.cur[k]=+s.value;if(st.goal[k]<st.cur[k])st.goal[k]=st.cur[k];
     /* keep the picked card's goal when a current level changes */

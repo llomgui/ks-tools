@@ -92,7 +92,7 @@ function weightsOf(st){const a=formW(st.prof,st.att),d=formW(st.prof,st.def);
 /* start from the Hero Gear page's settings, so every page agrees */
 function heroDefaults(){
   const d={prof:'gen4',att:{I:50,C:20,A:30},def:{I:60,C:40,A:0},mix:70,for:'mix'};
-  try{const h=JSON.parse(localStorage.getItem('hgp-state-v3')||'null');
+  try{const h=KS.read(KS.KEYS.hero);
     if(h){if(PROF[h.profile])d.prof=h.profile;
       if(h.form){const f=h.form;if(f.att)d.att={I:+f.att[0]||0,C:+f.att[1]||0,A:+f.att[2]||0};if(f.def)d.def={I:+f.def[0]||0,C:+f.def[1]||0,A:+f.def[2]||0};if(f.mix!=null)d.mix=+f.mix;}
       if(['att','def','mix'].includes(h.planFor))d.for=h.planFor;}}catch(e){}
@@ -119,8 +119,8 @@ function clean(o){
     mc:Array.from({length:5},(_,k)=>!!(Array.isArray(o.mc)&&o.mc[k])),   /* Master's Collection levels already opened */
     des:reg(o.pd||o.des),cra:reg(o.pc||o.cra)};}   /* Design / Craftsman Pack: $5, $10, $20, $50 bought, number of $100 bought */
 const reg=v=>{v=Array.isArray(v)?v:[];return [0,1,2,3].map(i=>!!v[i]).concat(Math.max(0,Math.min(20,Math.floor(+v[4]||0))));};
-const KEY='ks-charms-v1';
-function loadSaved(){try{const o=JSON.parse(localStorage.getItem(KEY)||'null');return o?clean(o):null;}catch(e){return null;}}
+const KEY=KS.KEYS.charms;
+function loadSaved(){const o=KS.read(KEY);try{return o?clean(o):null;}catch(e){return null;}}
 
 window.CH={L,MAXL,STEP_L,PMAX,KVK_PTS,posOf,lvAt,lvName,buy,CUM,PIECES,TROOP,N,troopOf,img,optimize,planFor,gains,weightsOf,heroDefaults,encode,decode,clean,KEY,loadSaved};
 })();

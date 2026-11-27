@@ -1,7 +1,5 @@
 (function(){
-const $=id=>document.getElementById(id);
-const fmt=n=>Math.round(n).toLocaleString('en-US');
-const pct=n=>(+n.toFixed(2)).toString();
+const {$,fmt,pct}=KS;
 
 /* ---------- data (per piece; cost to reach the level from the one before) ---------- */
 const RAW=window.GOV_RAW;
@@ -172,7 +170,7 @@ function weightsOf(st){const a=formW(st.profile,st.att),d=formW(st.profile,st.de
 /* start from the Hero Gear tab's settings, so both tabs agree */
 function heroDefaults(){
   const d={profile:'gen4',att:{I:50,C:20,A:30},def:{I:60,C:40,A:0},mix:70,for:'att'};
-  try{const h=JSON.parse(localStorage.getItem('hgp-state-v3')||'null');
+  try{const h=KS.read(KS.KEYS.hero);
     if(h){if(PROF[h.profile])d.profile=h.profile;
       if(h.form){const f=h.form;if(f.att)d.att={I:f.att[0],C:f.att[1],A:f.att[2]};if(f.def)d.def={I:f.def[0],C:f.def[1],A:f.def[2]};if(f.mix!=null)d.mix=f.mix;}
       if(['att','def','mix'].includes(h.planFor))d.for=h.planFor;}}catch(e){}
@@ -482,12 +480,12 @@ function render(){
   const eff={...st,inv:addc(st.inv,packs)};
   renderWeights(st);renderPlan(eff);renderCards(eff);renderMaterials(eff,st.inv,packs);renderWhy(eff);renderCart(parts);renderShop(st,parts);showAcct(st);
   if(document.activeElement!==$('gv-code'))$('gv-code').value=encodeGov(st);
-  try{localStorage.setItem('hgp-gov-v1',JSON.stringify(st))}catch(e){}
+  KS.write(KS.KEYS.gov,st);
   drawGov();setPending(false);
 }
 
 /* ---------- events ---------- */
-const say=(t,c)=>{const m=$('gv-msg');m.textContent=t;m.className='msg '+c;};
+const say=KS.msg('gv-msg');
 /* The planner runs automatically when you finish an edit: right away when you leave a field, tick a box,
    pick an option or press Enter, or 800 ms after you stop typing. Not on every keystroke, which made typing lag.
    While a run is pending, a small "Updating plan…" label shows next to the results title. */
@@ -555,7 +553,7 @@ $('gv-cards').addEventListener('keydown',e=>{const c=e.target.closest('.gcw');if
 /* ---------- start ---------- */
 function loadSaved(){
 let start=BLANK();
-try{const s=JSON.parse(localStorage.getItem('hgp-gov-v1')||'null');
+try{const s=KS.read(KS.KEYS.gov);
   if(s&&s.pieces&&s.pieces.length===6&&s.inv){
     /* older saves had goals and plain sliders: keep levels and materials, take troop settings from the Hero Gear tab */
     start={...start,inv:s.inv,exch:!!s.exch,pieces:s.pieces.map(x=>({cur:x.cur,tgt:x.cur})),isExample:!!s.isExample};

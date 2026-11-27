@@ -5,7 +5,7 @@
    live keys, reload. The calculators themselves don't know about accounts. Later, a login can sync the
    same store across devices. */
 (function(){
-const KEYS=['hgp-state-v3','hgp-state-v2','hgp-gov-v1','ks-charms-v1','ks-kvk-v1','ks-reforge-v1','ks-truegold-v1'];
+const KEYS=Object.values(KS.KEYS);   /* every page's storage key: common.js */
 const STORE='ks-accounts-v1',MAXN=20,MAXLEN=24;
 let ls;try{ls=window.localStorage;ls.getItem(STORE);}catch(e){return;}   /* storage blocked: no switcher */
 const nav=document.querySelector('.sitenav');if(!nav)return;
@@ -27,22 +27,23 @@ function freeze(){const set=Storage.prototype.setItem;
 /* A page that sets window.KSPage = {flush(), reload()} switches in place: flush() saves an edit still waiting
    to be saved, reload() reads the page's inputs again from storage. Other pages reload. */
 const page=()=>{const P=window.KSPage;return P&&typeof P.reload==='function'?P:null;};
-function show(id){
+function show(){
+  KS.bumpGen();   /* answers still on their way belong to the account we just left: pages drop them */
   const P=page();
-  if(P){try{P.reload();open(false);draw();window.dispatchEvent(new CustomEvent('ks-account-switched',{detail:{id}}));return;}catch(e){}}
+  if(P){try{P.reload();open(false);draw();return;}catch(e){}}
   freeze();location.reload();}
 function swapTo(to){KEYS.forEach(k=>{if(to.data&&to.data[k]!=null)ls.setItem(k,to.data[k]);else ls.removeItem(k);});}
 function activate(id){
   const to=S.list.find(a=>a.id===id);if(!to)return;
   const P=page();if(P&&P.flush){try{P.flush();}catch(e){}}
   cur().data=snapshot();swapTo(to);
-  S.active=id;save(S);show(id);}
+  S.active=id;save(S);show();}
 /* another tab switched account: follow it (its inputs are already in storage) */
 window.addEventListener('storage',e=>{if(e.key!==STORE)return;const n=load();
-  if(n.active!==S.active){S=n;show(n.active);}else{S=n;draw();}});
+  if(n.active!==S.active){S=n;show();}else{S=n;draw();}});
 
 /* ---------- UI ---------- */
-const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=KS.esc;
 const box=document.createElement('div');box.className='acsw';
 box.innerHTML=`<button type="button" class="acsw-btn" aria-haspopup="true" aria-expanded="false" aria-controls="acsw-menu">
   <svg class="acsw-who" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3.4"/><path d="M3.5 17c.9-3.3 3.4-5 6.5-5s5.6 1.7 6.5 5"/></svg><img class="acsw-av" alt="" hidden>
@@ -71,11 +72,15 @@ function drawJL(){
       <div class="acsw-row"><input id="acsw-fid" inputmode="numeric" autocomplete="off" placeholder="e.g. 123456789"><button type="submit" class="primary"${tok?'':' disabled'}>Link</button></div></form>`;
   $('.acsw-jlbody').innerHTML=linkHtml+tokHtml;}
 async function link(fid,fresh){
+  const id=S.active;   /* the account the player asked to link, even if they switch while we wait */
   jlMsg('Asking Jeabslist…');
-  try{const p=await JL.player(fid,{fresh});S=load();const a=cur();a.jl=p;if(DEFAULT_NAME.test(a.name)&&p.name)a.name=p.name.slice(0,MAXLEN);
-    save(S);draw();jlMsg(`Linked to ${p.name||'your governor'}.`);
+  try{const p=await JL.player(fid,{fresh});S=load();const a=S.list.find(x=>x.id===id);if(!a)return;
+    a.jl=p;if(DEFAULT_NAME.test(a.name)&&p.name)a.name=p.name.slice(0,MAXLEN);
+    save(S);draw();
+    if(S.active!==id)return;   /* linked the other account: nothing to show on this one */
+    jlMsg(`Linked to ${p.name||'your governor'}.`);
     window.dispatchEvent(new CustomEvent('ks-account-linked',{detail:p}));}
-  catch(e){jlMsg(e.message,true);}}
+  catch(e){if(S.active===id)jlMsg(e.message,true);}}
 function draw(){
   $('.acsw-name').textContent=cur().name;
   {const jl=cur().jl,av=$('.acsw-av');av.hidden=!(jl&&jl.avatar);$('.acsw-who').style.display=av.hidden?'':'none';if(!av.hidden)av.src=jl.avatar;}
@@ -101,7 +106,7 @@ menu.addEventListener('click',e=>{
   else if(act==='del'){form.hidden=true;conf.hidden=false;conf.querySelector('p').textContent=`Delete "${cur().name}" and all its inputs on every page? This can't be undone.`;conf.querySelector('.danger').focus();}
   else if(act==='del-yes'){const gone=S.active,next=S.list.find(a=>a.id!==gone);
     S.list=S.list.filter(a=>a.id!==gone);S.active=next.id;
-    swapTo(next);save(S);show(next.id);}});
+    swapTo(next);save(S);show();}});
 menu.addEventListener('submit',e=>{const f=e.target.closest('form[data-f]');if(!f)return;e.preventDefault();
   const v=f.querySelector('input').value.trim();
   if(f.dataset.f==='tok'){if(!v)return;JL.setToken(v);drawJL();jlMsg('Token saved in this browser.');const i=$('#acsw-fid');if(i)i.focus();}

@@ -6,7 +6,7 @@ const EXAMPLE={chests:0,fh:2359,myth:99,mith:122,xp:5000000,profile:'gen4',mode:
   A:[[139,17,'R'],[139,12,'R'],[139,13,'R'],[199,19,'R']]}};
 
 /* ---------- UI ---------- */
-const $=id=>document.getElementById(id);
+const {$,esc}=KS;
 const gearEl=$('gear');
 TROOPS.forEach(t=>{
   const box=document.createElement('div');box.className='troop';
@@ -117,7 +117,7 @@ function render(){
   st.hcart={...hcart};
   st.isExample=isExample;st.shopTab=shopTab;
   if($('acct').textContent)setTimeout(showAcct,0);
-  try{localStorage.setItem('hgp-state-v3',JSON.stringify(st))}catch(e){}
+  KS.write(KS.KEYS.hero,st);
   if(document.activeElement!==$('code')) $('code').value=encode(st);   /* the box always shows the code for the current form */
   setPending(false);
 }
@@ -397,7 +397,7 @@ function encode(st){
   const g={};TROOPS.forEach(t=>{g[t.k]={};t.pieces.forEach((key,i)=>{g[t.k][key]=st.gear[t.k][i]})});
   const obj={n:'Shared Build',g,r:[st.fh,st.mith,Math.floor((st.xp%100)/10),Math.floor(st.xp/100),0,0,0,0,st.myth]};
   return 'KGO:'+btoa(encodeURIComponent(JSON.stringify(obj)));}
-const say=(t,c)=>{const m=$('share-msg');m.textContent=t;m.className='msg '+c;};
+const say=KS.msg('share-msg');
 
 $('btn-import').addEventListener('click',()=>{
   try{const st=decode($('code').value);isExample=false;writeState(st);render();showAcct();
@@ -423,10 +423,10 @@ function jlDraw(){
   const rows=TROOPS.map(t=>{const hs=jlData.heroes.filter(h=>h.troop===t.k).sort((a,b)=>(a.pos||99)-(b.pos||99));
     if(!hs.length)return `<div class="jl-row"><span class="label">${t.name}</span><span class="jl-none">No ${t.name} hero on Jeabslist: your ${t.name} pieces stay as they are.</span></div>`;
     return `<div class="jl-row"><span class="label">${t.name}${hs.length>1?` <small>· pick 1 of ${hs.length}</small>`:''}</span><div class="jl-cards" role="group" aria-label="${t.name} hero">${hs.map(h=>{const on=jlData.pick[t.k]===h.id;
-      return `<button type="button" class="jl-card" data-t="${t.k}" data-id="${h.id}" aria-pressed="${on}"><span class="jl-name"><b>${h.name}</b><small>${h.pos?`Formation ${h.pos}`:'Not in formation'}</small></span>
+      return `<button type="button" class="jl-card" data-t="${t.k}" data-id="${esc(h.id)}" aria-pressed="${on}"><span class="jl-name"><b>${esc(h.name)}</b><small>${h.pos?`Formation ${h.pos}`:'Not in formation'}</small></span>
         <span class="jl-gear">${h.gear.map((g,i)=>`<span title="${SLOT_OF[i]}">${jlLv(g)}<small>/${g[1]}</small></span>`).join('')}</span>${h.lowQ?`<span class="jl-none">${h.lowQ} piece${h.lowQ>1?'s':''} below Mythic, read as empty</span>`:''}</button>`;}).join('')}</div></div>`;}).join('');
   const when=jlData.fetchedAt?new Date(jlData.fetchedAt).toLocaleString():'unknown date';
-  box.innerHTML=`<p class="jl-h"><b>${jlData.who}</b>: ${jlData.heroes.length} heroes, gear seen by Jeabslist on ${when}${jlData.stale?' (may be out of date)':''}. Tap the hero whose gear you're planning, one per troop type.</p>
+  box.innerHTML=`<p class="jl-h"><b>${esc(jlData.who)}</b>: ${jlData.heroes.length} heroes, gear seen by Jeabslist on ${when}${jlData.stale?' (may be out of date)':''}. Tap the hero whose gear you're planning, one per troop type.</p>
     ${rows}<p class="foot" style="margin:6px 0 10px">Level/mastery per piece: Helm, Gloves, Chest, Boots (R = Red, M = Mythic). Picked first: the hero with the most gear. Your materials aren't on Jeabslist: check them in step 1.</p>
     <div class="btns"><button type="button" class="primary" id="jl-apply">Use this gear</button><button type="button" id="jl-cancel">Cancel</button></div>`;
   box.hidden=false;}
@@ -434,12 +434,13 @@ $('btn-jl').addEventListener('click',async()=>{
   const acc=window.KSAccounts&&KSAccounts.linked();
   if(!window.JL||!JL.hasToken()||!acc){say(!acc?'First link this game account to your Governor ID: account menu, top right.':'First add your Jeabslist API token: account menu, top right.','err');
     if(window.KSAccounts)KSAccounts.open();return;}
-  const b=$('btn-jl');b.disabled=true;say('Asking Jeabslist for your hero gear…','ok');
+  const b=$('btn-jl'),gen=KS.gen();b.disabled=true;say('Asking Jeabslist for your hero gear…','ok');
   try{const d=await JL.heroGear(acc.fid);
+    if(gen!==KS.gen())return;   /* the player switched game account meanwhile */
     if(!d.heroes.length){jlData=null;jlDraw();say(d.fetchedAt?'Jeabslist has no hero gear for this governor.':"Jeabslist hasn't read this governor's gear yet. It fills in over time; try again later.",'err');return;}
     const pick={};TROOPS.forEach(t=>{const hs=jlOrder(d.heroes.filter(h=>h.troop===t.k));if(hs.length)pick[t.k]=hs[0].id;});
     jlData={...d,pick,who:acc.name||('ID '+acc.fid)};jlDraw();say('','ok');}
-  catch(e){say(e.message,'err');}
+  catch(e){if(gen===KS.gen())say(e.message,'err');}
   finally{b.disabled=false;}});
 $('jl-pick').addEventListener('click',e=>{
   const c=e.target.closest('.jl-card');
@@ -486,7 +487,7 @@ document.querySelector('.tabs').addEventListener('keydown',e=>{
   const order=['mith','fh','hero'];let i=order.indexOf(shopTab);
   if(e.key==='ArrowRight')i=(i+1)%3;else if(e.key==='ArrowLeft')i=(i+2)%3;else return;
   e.preventDefault();showTab(order[i]);$('tab-'+order[i]).focus();saveTab();});
-function saveTab(){try{const s=JSON.parse(localStorage.getItem('hgp-state-v3')||'null');if(s){s.shopTab=shopTab;localStorage.setItem('hgp-state-v3',JSON.stringify(s));}}catch(e){}}
+function saveTab(){const s=KS.read(KS.KEYS.hero);if(s){s.shopTab=shopTab;KS.write(KS.KEYS.hero,s);}}
 /* The planner runs automatically when you finish an edit: right away when you leave a field, tick a box,
    pick an option or press Enter, or 800 ms after you stop typing. Not on every keystroke, which made typing lag.
    While a run is pending, a small "Updating plan…" label shows next to the results title. */
@@ -516,10 +517,10 @@ const sameGear=(a,b)=>TROOPS.every(t=>a[t.k]&&a[t.k].every((g,i)=>g[0]===b[t.k][
 function loadSaved(){
 let start=BLANK();
 try{
-  let s=JSON.parse(localStorage.getItem('hgp-state-v3')||'null');
+  let s=KS.read(KS.KEYS.hero);
   if(!s){
     /* carry over values saved by earlier versions of this page */
-    const old=JSON.parse(localStorage.getItem('hgp-state-v2')||'null');
+    const old=KS.read(KS.KEYS.heroOld);
     if(old&&old.gear){
       s=old;
       /* the old default was the example account: keep it labelled as an example, not as the visitor's own */
