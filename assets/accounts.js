@@ -36,18 +36,41 @@ window.addEventListener('storage',e=>{if(e.key!==STORE)return;const n=load();if(
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const box=document.createElement('div');box.className='acsw';
 box.innerHTML=`<button type="button" class="acsw-btn" aria-haspopup="true" aria-expanded="false" aria-controls="acsw-menu">
-  <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3.4"/><path d="M3.5 17c.9-3.3 3.4-5 6.5-5s5.6 1.7 6.5 5"/></svg>
+  <svg class="acsw-who" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="7" r="3.4"/><path d="M3.5 17c.9-3.3 3.4-5 6.5-5s5.6 1.7 6.5 5"/></svg><img class="acsw-av" alt="" hidden>
   <span class="acsw-name"></span><svg class="acsw-car" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 8l4 4 4-4"/></svg></button>
   <div class="acsw-menu" id="acsw-menu" hidden><p class="acsw-h">Game accounts</p><div class="acsw-list" role="group" aria-label="Switch game account"></div>
   <div class="acsw-acts"><button type="button" data-act="new">+ New</button><button type="button" data-act="ren">Rename</button><button type="button" data-act="del">Delete</button></div>
   <form class="acsw-form" hidden><label class="acsw-lbl"></label><div class="acsw-row"><input type="text" maxlength="${MAXLEN}" autocomplete="off"><button type="submit" class="primary">Save</button><button type="button" data-act="cancel">Cancel</button></div></form>
   <div class="acsw-conf" hidden><p></p><div class="acsw-row"><button type="button" data-act="del-yes" class="danger">Delete</button><button type="button" data-act="cancel">Cancel</button></div></div>
+  <div class="acsw-jl" hidden><p class="acsw-h">Jeabslist</p><div class="acsw-jlbody"></div><p class="acsw-jlmsg" role="status"></p></div>
   <p class="acsw-foot">One set of inputs per game account, for every page. Saved in this browser only.</p></div>`;
 nav.appendChild(box);
 const $=s=>box.querySelector(s),btn=$('.acsw-btn'),menu=$('.acsw-menu'),form=$('.acsw-form'),inp=form.querySelector('input'),conf=$('.acsw-conf');
 let formMode=null;
+/* Jeabslist: the player's own API token (this browser) and a Governor ID per game account */
+const DEFAULT_NAME=/^(Main|Account \d+)$/;
+function jlMsg(t,bad){const m=$('.acsw-jlmsg');m.textContent=t||'';m.classList.toggle('bad',!!bad);}
+function drawJL(){
+  const box=$('.acsw-jl');box.hidden=!window.JL;if(!window.JL)return;
+  const a=cur(),jl=a.jl,tok=JL.hasToken();
+  const tokHtml=tok?`<p class="acsw-tok">API token saved in this browser <span><button type="button" class="acsw-lnk" data-act="tok-edit">Change</button> <button type="button" class="acsw-lnk" data-act="tok-del">Remove</button></span></p>`
+    :`<form data-f="tok"><label class="acsw-lbl" for="acsw-tok">Your API token (Jeabs Plus or Premium). It stays in this browser and only goes to jeabslist.com.</label>
+      <div class="acsw-row"><input id="acsw-tok" type="password" autocomplete="off" spellcheck="false"><button type="submit" class="primary">Save</button></div></form>`;
+  const linkHtml=jl?`<div class="acsw-gov">${jl.avatar?`<img src="${esc(jl.avatar)}" alt="">`:''}<div><b>${esc(jl.name||'Governor')}</b><small>ID ${esc(jl.fid)}${jl.kingdom?` · #${jl.kingdom}`:''}${jl.alliance?` · [${esc(jl.alliance)}]`:''}</small></div></div>
+      <div class="acsw-row"><button type="button" data-act="jl-refresh"${tok?'':' disabled'}>Refresh</button><button type="button" data-act="jl-unlink">Unlink</button></div>`
+    :`<form data-f="link"><label class="acsw-lbl" for="acsw-fid">Governor ID for "${esc(a.name)}"</label>
+      <div class="acsw-row"><input id="acsw-fid" inputmode="numeric" autocomplete="off" placeholder="e.g. 123456789"><button type="submit" class="primary"${tok?'':' disabled'}>Link</button></div></form>`;
+  $('.acsw-jlbody').innerHTML=linkHtml+tokHtml;}
+async function link(fid,fresh){
+  jlMsg('Asking Jeabslist…');
+  try{const p=await JL.player(fid,{fresh});S=load();const a=cur();a.jl=p;if(DEFAULT_NAME.test(a.name)&&p.name)a.name=p.name.slice(0,MAXLEN);
+    save(S);draw();jlMsg(`Linked to ${p.name||'your governor'}.`);
+    window.dispatchEvent(new CustomEvent('ks-account-linked',{detail:p}));}
+  catch(e){jlMsg(e.message,true);}}
 function draw(){
   $('.acsw-name').textContent=cur().name;
+  {const jl=cur().jl,av=$('.acsw-av');av.hidden=!(jl&&jl.avatar);$('.acsw-who').style.display=av.hidden?'':'none';if(!av.hidden)av.src=jl.avatar;}
+  drawJL();
   $('.acsw-list').innerHTML=S.list.map(a=>`<button type="button" class="acsw-it" data-id="${a.id}" aria-pressed="${a.id===S.active}">${esc(a.name)}${a.id===S.active?'<small>active</small>':''}</button>`).join('');
   $('[data-act="new"]').disabled=S.list.length>=MAXN;$('[data-act="del"]').disabled=S.list.length<2;}
 function open(on){menu.hidden=!on;btn.setAttribute('aria-expanded',on);if(!on){form.hidden=true;conf.hidden=true;}}
@@ -62,15 +85,24 @@ menu.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;const act=b.dataset.act;
   if(act==='new'||act==='ren')ask(act);
   else if(act==='cancel'){form.hidden=true;conf.hidden=true;}
+  else if(act==='tok-edit'){JL.setToken('');drawJL();jlMsg('');const i=$('#acsw-tok');if(i)i.focus();}
+  else if(act==='tok-del'){JL.setToken('');drawJL();jlMsg('Token removed from this browser.');}
+  else if(act==='jl-refresh'){const jl=cur().jl;if(jl)link(jl.fid,true);}
+  else if(act==='jl-unlink'){S=load();delete cur().jl;save(S);draw();jlMsg('');}
   else if(act==='del'){form.hidden=true;conf.hidden=false;conf.querySelector('p').textContent=`Delete "${cur().name}" and all its inputs on every page? This can't be undone.`;conf.querySelector('.danger').focus();}
   else if(act==='del-yes'){const gone=S.active,next=S.list.find(a=>a.id!==gone);
     S.list=S.list.filter(a=>a.id!==gone);S.active=next.id;
     KEYS.forEach(k=>{if(next.data&&next.data[k]!=null)ls.setItem(k,next.data[k]);else ls.removeItem(k);});
     save(S);freeze();location.reload();}});
+menu.addEventListener('submit',e=>{const f=e.target.closest('form[data-f]');if(!f)return;e.preventDefault();
+  const v=f.querySelector('input').value.trim();
+  if(f.dataset.f==='tok'){if(!v)return;JL.setToken(v);drawJL();jlMsg('Token saved in this browser.');const i=$('#acsw-fid');if(i)i.focus();}
+  else link(v,true);});
 form.addEventListener('submit',e=>{e.preventDefault();const name=inp.value.trim().slice(0,MAXLEN);if(!name){inp.focus();return;}
   if(formMode==='ren'){cur().name=name;save(S);form.hidden=true;draw();return;}
   const id=uid();S.list.push({id,name,data:{}});activate(id);});
 draw();
 if(!ls.getItem(STORE))save(S);
-window.KSAccounts={KEYS,STORE,list:()=>S.list.map(a=>({id:a.id,name:a.name})),active:()=>S.active,switchTo:activate};
+window.KSAccounts={KEYS,STORE,list:()=>S.list.map(a=>({id:a.id,name:a.name})),active:()=>S.active,switchTo:activate,
+  linked:()=>{const j=cur().jl;return j?{...j}:null;},open:()=>{setTimeout(()=>{draw();open(true);},0);}};   /* after the click that asked for it, which would close it */
 })();
