@@ -6,6 +6,12 @@ body{margin:0;font-size:14px}
 img{max-width:100%}
 [hidden]{display:none!important}
 .sitenav{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-bottom:20px}
+/* moving between pages: the browser keeps the nav in place and cross-fades the rest, instead of a white flash
+   (Chrome/Edge 126+, Safari 18.2+; other browsers load the page as before). Pages are prefetched on hover. */
+@view-transition{navigation:auto}
+.sitenav{view-transition-name:sitenav}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.15s}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}
 .brand{font-family:var(--display);font-weight:700;letter-spacing:.06em;color:var(--ink);text-decoration:none;font-size:1.05rem}
 .brand span{color:var(--ember)}
 .sitenav .apptabs{margin-bottom:0}
