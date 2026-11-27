@@ -123,6 +123,7 @@
           <div class="stat"><div class="label">KvK points</div><div class="v" id="s-kvk">—</div><div class="tg-sub" id="s-kvk2"></div></div>
           <div class="stat"><div class="label">Materials used</div><div class="v ch-mat" id="s-mat">—</div><div class="tg-sub" id="s-mat2"></div></div>
         </div>
+        <div class="cartbar" id="cart" hidden></div>
         <div id="gains" class="ch-gains"></div>
         <div id="tiles" class="ch-tiles"></div>
         <h3 class="sub" id="steps-h">Upgrades</h3>
@@ -143,9 +144,61 @@
   <section class="panel shop" aria-labelledby="h-shop" style="margin-top:20px">
     <div class="shop-head">
       <h2 id="h-shop">Shop packs</h2>
-      <span class="chip">Coming soon</span>
+      <div class="gvtabs" id="shop-tabs" role="tablist" aria-label="Pack type">
+        <button type="button" role="tab" id="tab-m" data-tab="m" aria-controls="tp-m">Master's Collection</button>
+        <button type="button" role="tab" id="tab-des" data-tab="des" aria-controls="tp-des">Design Pack</button>
+        <button type="button" role="tab" id="tab-cra" data-tab="cra" aria-controls="tp-cra">Craftsman Pack</button>
+      </div>
     </div>
-    <p class="lede" style="margin:0;font-size:.9rem">Which charm packs are worth buying for your account: the Charm Guides and Charm Designs in each pack, what they add to your charms, and the KvK points per dollar. Coming soon, once we have the pack prices.</p>
+    <p class="foot" id="shop-unit" style="margin:-4px 0 12px"></p>
+    <div class="tabpanel" id="tp-m" role="tabpanel" aria-labelledby="tab-m" data-shop="m">
+    <p class="lede" style="margin:0 0 12px;font-size:.88rem">Charm Master's Collection: 5 levels, bought in order: $5, $10, $20, $50, $100. Each level lets you pick one of 3 chests. Tick the levels you've already opened (their materials should already be in step 1).</p>
+    <div class="bought">
+      <label class="pk"><input type="checkbox" id="m-0"><span>$5</span></label>
+      <label class="pk"><input type="checkbox" id="m-1"><span>$10</span></label>
+      <label class="pk"><input type="checkbox" id="m-2"><span>$20</span></label>
+      <label class="pk"><input type="checkbox" id="m-3"><span>$50</span></label>
+      <label class="pk"><input type="checkbox" id="m-4"><span>$100</span></label>
+    </div>
+    <div id="m-verdict" class="notes"></div>
+    <div class="tbl"><table id="m-table">
+      <thead><tr><th>Buy</th><th class="r">Spent</th><th>Best chests</th><th class="r">Lethality &amp; Health</th><th class="r">KvK points</th><th class="r">Power</th><th></th></tr></thead>
+      <tbody></tbody></table></div>
+    <h3 class="sub" style="margin-top:16px">Or pick chests yourself</h3>
+    <div class="lvpicks" id="m-pick"></div>
+    <p class="gv-selgain" id="m-selgain"></p>
+    <p class="foot">Per $5: <b>Chest A</b> 30 Guides · 30 Designs. <b>Chest B</b> 20 Guides · 40 Designs. <b>Chest C</b> 40 Guides · 20 Designs. Bigger levels give the same times price ÷ 5 ($100 = ×20). Each row is the best mix of chests for that budget, every combination tested, with your materials, formations and goal. Tap Try to add a row to your plan above.</p>
+    </div>
+    <div class="tabpanel" id="tp-des" role="tabpanel" aria-labelledby="tab-des" data-shop="des" hidden>
+    <p class="lede" style="margin:0 0 12px;font-size:.88rem">Charm Design Pack, bought in order: $5, $10, $20, $50, then $100 up to 20 times. Tick what you've already bought (its materials should already be in step 1).</p>
+    <div class="bought">
+      <label class="pk"><input type="checkbox" id="des-0"><span>$5</span></label>
+      <label class="pk"><input type="checkbox" id="des-1"><span>$10</span></label>
+      <label class="pk"><input type="checkbox" id="des-2"><span>$20</span></label>
+      <label class="pk"><input type="checkbox" id="des-3"><span>$50</span></label>
+      <label class="pk pk-n"><span>$100 bought</span><input type="number" id="des-4" min="0" max="20" step="1"></label>
+    </div>
+    <div id="des-verdict" class="notes"></div>
+    <div class="tbl"><table id="des-table">
+      <thead><tr><th>Next pack</th><th class="r">Spent</th><th class="r">Gives</th><th class="r">Lethality &amp; Health</th><th class="r">KvK points</th><th class="r">Power</th><th></th></tr></thead>
+      <tbody></tbody></table></div>
+    <p class="foot">Per $5: 16 Designs. Bigger packs give the same times price ÷ 5. Each row is everything up to that pack, on top of your plan. Tap Try to add packs up to that row to your plan above.</p>
+    </div>
+    <div class="tabpanel" id="tp-cra" role="tabpanel" aria-labelledby="tab-cra" data-shop="cra" hidden>
+    <p class="lede" style="margin:0 0 12px;font-size:.88rem">Charm Craftsman Pack, bought in order: $5, $10, $20, $50, then $100 up to 20 times. Tick what you've already bought (its materials should already be in step 1).</p>
+    <div class="bought">
+      <label class="pk"><input type="checkbox" id="cra-0"><span>$5</span></label>
+      <label class="pk"><input type="checkbox" id="cra-1"><span>$10</span></label>
+      <label class="pk"><input type="checkbox" id="cra-2"><span>$20</span></label>
+      <label class="pk"><input type="checkbox" id="cra-3"><span>$50</span></label>
+      <label class="pk pk-n"><span>$100 bought</span><input type="number" id="cra-4" min="0" max="20" step="1"></label>
+    </div>
+    <div id="cra-verdict" class="notes"></div>
+    <div class="tbl"><table id="cra-table">
+      <thead><tr><th>Next pack</th><th class="r">Spent</th><th class="r">Gives</th><th class="r">Lethality &amp; Health</th><th class="r">KvK points</th><th class="r">Power</th><th></th></tr></thead>
+      <tbody></tbody></table></div>
+    <p class="foot">Per $5: 24 Guides · 8 Designs. Bigger packs give the same times price ÷ 5. Each row is everything up to that pack, on top of your plan. Tap Try to add packs up to that row to your plan above.</p>
+    </div>
   </section>
 
   <footer>Game data and charm art from <a href="https://kingshotoptimizer.com/charms/references/" target="_blank" rel="noopener">Kingshot Optimizer</a></footer>
