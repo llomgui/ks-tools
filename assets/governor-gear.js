@@ -13,7 +13,7 @@ const CAP_BIG=[34,38,42,46,50,54];       /* T1..T6 0★ */
 
 /* a piece's progress is a "position": 0 = not owned, then one step per purchase */
 const posOf=(L,s)=>L<0?0:(L<STEP_LV-1?L+1:STEP_LV+5*(L-(STEP_LV-1))+(L<N-1?s:0));
-const lvAt=p=>{if(p<=0)return {L:-1,s:0};if(p<=STEP_LV)return {L:p-1,s:0};const q=p-STEP_LV;return {L:STEP_LV-1+Math.floor(q/5),s:q%5};};
+const {lvAt,IMG_SLOT,tierOf,starsOf,artSrc}=window.GOVART;   /* levels and art: governor-gear-data.js */
 const unitLevel=p=>p<=STEP_LV?p-1:STEP_LV-1+Math.ceil((p-STEP_LV)/5);
 const CUM=[{satin:0,gt:0,av:0}],STAT=[0],CAP=[0];
 for(let p=1;p<=PMAX;p++){
@@ -30,17 +30,6 @@ const lvName=p=>{const {L,s}=lvAt(p);return L<0?'Not owned':LV[L].name+(s?` · $
 
 const PIECES=[{n:'Cloak',t:'I'},{n:'Breeches',t:'I'},{n:'Hood',t:'C'},{n:'Charmstone',t:'C'},{n:'Ring',t:'A'},{n:'Staff',t:'A'}];
 const TROOP={I:'Infantry',C:'Cavalry',A:'Archer'};
-/* art: assets/gear/{slot}00{n}.png — slot 1 Hood(crown) 2 Charmstone 3 Cloak 4 Breeches 5 Ring 6 Staff.
-   n changes with level (checked against the in-game cards): Uncommon 1, Rare 2, Epic/Epic T1 3, Mythic/Mythic T1 4,
-   Mythic T2-T3 7, Legendary/T1-T2 5, Legendary T3-T4 6, Legendary T5-T6 8. Not owned: outline icon 0{slot}.png */
-const IMG_SLOT={Hood:1,Charmstone:2,Cloak:3,Breeches:4,Ring:5,Staff:6};
-const tierOf=L=>{const m=LV[L].name.match(/ T(\d)/);return m?'T'+m[1]:'';};
-const starsOf=L=>+(LV[L].name.match(/(\d)★/)||[0,0])[1];
-function artSrc(n,L){
-  if(L<0)return `../assets/gear/0${IMG_SLOT[n]}.png`;
-  const r=LV[L].rar,t=+(tierOf(L).slice(1)||0);
-  const k=r==='Legendary'?(t>=5?8:t>=3?6:5):r==='Mythic'?(t>=2?7:4):r==='Epic'?3:r==='Rare'?2:1;
-  return `../assets/gear/${IMG_SLOT[n]}00${k}.png`;}
 const gearImg=(n,L,id)=>`<img${id?` id="${id}"`:''} src="${artSrc(n,L)}" alt="" loading="lazy" decoding="async">`;
 const ORDER=[2,3,0,1,4,5];   /* game order: Cavalry, Infantry, Archer (saved data keeps its own order) */
 const TORDER=['C','I','A'];

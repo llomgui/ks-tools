@@ -19,9 +19,16 @@ const POS_OPTS=Array.from({length:C.PMAX+1},(_,p)=>{const {l,s}=C.lvAt(p);return
    Charmstone, Breeches, Staff on the right), the picked piece's 3 charms on a ring in the middle, and the picked
    charm's stage bar, power, stat bonuses and next upgrade cost below */
 const IMG_SLOT={Hood:1,Charmstone:2,Cloak:3,Breeches:4,Ring:5,Staff:6};
+/* the gear pieces show your Governor Gear from the Governor Gear page (rarity, tier and art), or a default
+   picture when that page has no gear of yours yet */
+const GA=window.GOVART;
+let gov=GA?GA.savedPieces():null;
+const gearSrc=n=>gov&&gov[n]?GA.artSrc(n,gov[n].L):`../assets/gear/${IMG_SLOT[n]}005.png`;
+const gearTag=n=>{if(!gov||!gov[n]||gov[n].L<0)return '';const L=gov[n].L,t=GA.tierOf(L),s=GA.starsOf(L);
+  return t||s?`${t}${s?`<span class="gt-stars">${'<b>★</b>'.repeat(s)}</span>`:''}`:'';};
 let selP=0,selC=0;
 function pieceBtn(pi){const pc=C.PIECES[pi];
-  return `<button type="button" class="cg-pc" data-p="${pi}" aria-label="${pc.n}, ${C.TROOP[pc.t]} charms"><img class="cg-gear" src="../assets/gear/${IMG_SLOT[pc.n]}005.png" alt="">
+  return `<button type="button" class="cg-pc" data-p="${pi}" aria-label="${pc.n}, ${C.TROOP[pc.t]} charms"><span class="cg-art"><img class="cg-gear" alt=""><span class="cg-tag"></span></span>
     <span class="cg-mini">${[0,1,2].map(k=>`<img data-mi="${pi*3+k}" alt="">`).join('')}</span><span class="cg-lvs" data-lvs="${pi}"></span></button>`;}
 function buildPieces(){
   $('pieces').innerHTML=`<div class="cg"><div class="cg-side">${[0,2,4].map(pieceBtn).join('')}</div>
@@ -33,8 +40,11 @@ function buildPieces(){
 function drawCharms(){
   document.querySelectorAll('.cg-pc').forEach(b=>{const pi=+b.dataset.p;b.classList.toggle('on',pi===selP);b.setAttribute('aria-pressed',pi===selP?'true':'false');
     b.querySelectorAll('[data-mi]').forEach(im=>{const i=+im.dataset.mi,{l}=C.lvAt(st.cur[i]);im.src=C.img(C.troopOf(i),l);im.classList.toggle('off',l===0);});
-    b.querySelector('.cg-lvs').textContent=[0,1,2].map(k=>C.lvAt(st.cur[pi*3+k]).l).join(' ');});
-  const pc=C.PIECES[selP];$('cg-name').innerHTML=`<b>${pc.n}</b> ${C.TROOP[pc.t]}`;
+    b.querySelector('.cg-lvs').textContent=[0,1,2].map(k=>C.lvAt(st.cur[pi*3+k]).l).join(' ');
+    const n=C.PIECES[pi].n,g=gov&&gov[n];b.querySelector('.cg-gear').src=gearSrc(n);b.querySelector('.cg-tag').innerHTML=gearTag(n);
+    b.title=g?`${n}: ${g.name}`:'';});
+  const pc=C.PIECES[selP],g=gov&&gov[pc.n];
+  $('cg-name').innerHTML=`<b>${pc.n}</b> ${C.TROOP[pc.t]}${g?`<small class="cg-glv">${g.name}</small>`:''}`;
   document.querySelectorAll('.cg-ch').forEach(el=>{const k=+el.dataset.k,i=selP*3+k,{l}=C.lvAt(st.cur[i]);
     el.classList.toggle('on',k===selC);const im=el.querySelector('img');im.src=C.img(pc.t,l);im.classList.toggle('off',l===0);
     const so=el.querySelector('select');so.value=st.cur[i];so.setAttribute('aria-label',`${pc.n} charm ${k+1} level`);
@@ -272,6 +282,6 @@ window.addEventListener('hashchange',()=>{if(fromHash()){writeInputs();render();
 buildPieces();fromHash();writeInputs();render();
 if(isExample)say('Showing an example. Enter your own charms and materials.','ok');
 /* game account switch (assets/accounts.js): inputs are saved as you type, so only reload */
-window.KSPage={reload(){loadSaved();cart=defCart();showAll=false;
+window.KSPage={reload(){loadSaved();gov=GA?GA.savedPieces():null;cart=defCart();showAll=false;
   writeInputs();render();say(isExample?'Showing an example. Enter your own charms and materials.':'','ok');}};
 })();

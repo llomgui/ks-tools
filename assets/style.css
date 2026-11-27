@@ -601,3 +601,10 @@ body.is-updating .upd{display:inline-block;animation:upd 1s ease-in-out infinite
 .jl-ptab td small{display:block;font-size:.7rem;color:var(--muted)}
 .jl-ptab td:nth-child(2) small{display:inline}
 .jl-miss{color:var(--muted);font-style:italic}
+/* Charms: your Governor Gear on the pieces (tier and stars like the Governor Gear page) */
+.cg-art{position:relative;display:block;width:52px;height:52px;container-type:inline-size;line-height:0}
+@media (max-width:520px){.cg-art{width:42px;height:42px}}
+.cg-tag{position:absolute;top:2%;left:4%;display:flex;flex-direction:column;align-items:flex-start;font:900 22cqw/1 system-ui,sans-serif;color:#fff36a;
+  -webkit-text-stroke:2px #3d2a0e;paint-order:stroke fill;white-space:nowrap}
+.cg-tag:empty{display:none}
+.cg-glv{display:block;font-size:.74rem;color:var(--muted)}

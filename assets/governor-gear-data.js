@@ -61,3 +61,31 @@ Legendary T6 0★|549000|5490|1110|162.00|30|40000
 Legendary T6 1★|565000|5650|1140|165.00|30|40000
 Legendary T6 2★|582000|5820|1170|168.00|30|40000
 Legendary T6 3★|599000|5990|1210|171.00|30|40000`;
+
+/* Governor Gear art and level names, shared by the Governor Gear and Charms pages (window.GOVART).
+   A piece's progress is a "position": 0 = not owned, then one step per purchase; from Mythic T3 0★ (level 25)
+   on, a level takes 5 purchases.
+   Art: assets/gear/{slot}00{n}.png, slot 1 Hood (crown) 2 Charmstone 3 Cloak 4 Breeches 5 Ring 6 Staff.
+   n changes with level (checked against the in-game cards): Uncommon 1, Rare 2, Epic/Epic T1 3, Mythic/Mythic T1 4,
+   Mythic T2-T3 7, Legendary/T1-T2 5, Legendary T3-T4 6, Legendary T5-T6 8. Not owned: outline icon 0{slot}.png */
+(function(){
+const NAMES=window.GOV_RAW.split('\n').map(l=>l.split('|')[0]);
+const STEP_LV=26;
+const lvAt=p=>{if(p<=0)return {L:-1,s:0};if(p<=STEP_LV)return {L:p-1,s:0};const q=p-STEP_LV;return {L:STEP_LV-1+Math.floor(q/5),s:q%5};};
+const IMG_SLOT={Hood:1,Charmstone:2,Cloak:3,Breeches:4,Ring:5,Staff:6};
+const tierOf=L=>{const m=NAMES[L].match(/ T(\d)/);return m?'T'+m[1]:'';};
+const starsOf=L=>+(NAMES[L].match(/(\d)★/)||[0,0])[1];
+function artSrc(n,L){
+  if(L<0)return `../assets/gear/0${IMG_SLOT[n]}.png`;
+  const r=NAMES[L].split(' ')[0],t=+(tierOf(L).slice(1)||0);
+  const k=r==='Legendary'?(t>=5?8:t>=3?6:5):r==='Mythic'?(t>=2?7:4):r==='Epic'?3:r==='Rare'?2:1;
+  return `../assets/gear/${IMG_SLOT[n]}00${k}.png`;}
+/* the player's saved Governor Gear (Governor Gear page), by piece name: {L, s, name}; null if none or the example */
+const SAVED_ORDER=['Cloak','Breeches','Hood','Charmstone','Ring','Staff'];   /* order of pieces in the saved data */
+function savedPieces(){
+  const g=window.KS&&KS.read(KS.KEYS.gov);
+  if(!g||g.isExample||!Array.isArray(g.pieces)||g.pieces.length!==6)return null;
+  const out={};SAVED_ORDER.forEach((n,i)=>{const {L,s}=lvAt(+g.pieces[i].cur||0);out[n]={L,s,name:L<0?'Not owned':NAMES[L]+(s?` · ${s}/5`:'')};});
+  return out;}
+window.GOVART={NAMES,STEP_LV,lvAt,IMG_SLOT,tierOf,starsOf,artSrc,savedPieces};
+})();
